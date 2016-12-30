@@ -25,6 +25,6 @@ for (fn in nestDataFiles) {
   d = updateNestData(fileName, year, band)
   resultFile = paste("updated nest data ", as.character(year), ".csv", sep="")
   output = paste(resultDir, resultFile, sep="/")
-  write.csv(d, file=output, na="")
+  write.csv(d, file=output, na="", row.names=FALSE)
 }
 #d = updateNestData("Nest level data 1983.csv", 83, band)
