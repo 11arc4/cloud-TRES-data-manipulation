@@ -55,7 +55,8 @@ for (i in 1:length(nestDataFiles)) {
     } # if
   } # for
   
- write.csv(x=nestdata, file=paste("Nest", nestdata$Year [2], "with malaria and adult.csv", sep=" "), na="")
+ write.csv(x=nestdata, file=paste("Nest", nestdata$Year [2], "with malaria and adult.csv", sep=" "),
+           row.names=FALSE , na="")
 }
 #write the csv files into a new location
 
