@@ -22,21 +22,39 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
   #           integer "YYMMDD"
   #       - if band date is earlier than this year:  go to next band data entry
   #         if band data is later than this year:  we are done
+  
+  substList = list()
+  hashList = list()
 
+  for (sex in c("M", "F")) {
+    l = list()
+    i = 0
+    for (d in list(
+      c("Wing..mm.", "Wing.Chord"),
+      c("Tarsus..mm.", "Tarsus"),
+      c("Mass..g.", "Mass"),
+      c("Nineth.Primary..mm.", "Ninth.Primary")
+    )) {
+      i = i + 1
+      l[[i]] <-  c(paste(sex, d[1], sep = "."), d[2])
+    }
+    substList[[sex]] = l
+    hashList[[sex]] = new.env(hash=TRUE, parent=emptyenv(), size=length(nest_data))
+  }
+  
   nest_data <- read.csv(nestDataCsvFile, as.is=TRUE, na.strings = c("NA", ""))
 
-  # connstruct the hashes...
-  hash_female = new.env(hash=TRUE, parent=emptyenv(), size=length(nest_data))
-  hash_male = new.env(hash=TRUE, parent=emptyenv(), size=length(nest_data))
-
   for (i in 1:length(nest_data)){
-    fId <- nest_data$FemaleID[i]
-   if (! is.na(fId) ){
-      assign(as.character(fId), i, hash_female )
-   }
-    mId <- nest_data$MaleID[i]
-    if (! is.na(mId) ){
-      assign(as.character(mId), i, hash_male )
+    
+    for (d in list(C("M", "MaleID"),
+                   c("F", "FemaleID"))) {
+      sex = d[1]
+      key = d[2]
+      
+      id <- nest_data[[key]][i]
+      if (! is.na(id) ){
+        assign(as.character(fId), i, hashList[sex])
+      }
     }
   }
 
@@ -48,69 +66,43 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
   yearBegin = (currentYear * 10000);
 
   didUpdate = FALSE
-  i = 0
+  i <- 0
   for(id in as.character(bandDataTable$Band.Number)){
-   i = i + 1
-   # bandDataTable$Date is parsed as a factor rather than an integer...not sure why
-   bandDate <- as.integer(bandDataTable$Date[i]) #..so this doesn't work
-   #bandDate = as.integer(as.character(bandDataTable$Date[i]))
+    i <- i + 1
+    # bandDataTable$Date is parsed as a factor rather than an integer...not sure why
+    bandDate <- as.integer(bandDataTable$Date[i]) #..so this doesn't work
+    #bandDate = as.integer(as.character(bandDataTable$Date[i]))
     #print(bandDate)
-   if (is.na(bandDate) || bandDate > yearEnd) {
+    if (is.na(bandDate) || bandDate > yearEnd) {
       # assumes that data is sorted by year - such that every element below this one is a later
       # date...if this one is after the end of the year, then the rest are too.
       break
     } else if (bandDate < yearBegin) {
       next
     }
-    #print(id)
-    if (exists(id, hash_female)){
-      nestDataIdx <- get(id, hash_female)
     
-      nestDate <- nest_data$F.Day.measured[nestDataIdx]
-      if (is.na(nestDate) | 
-          (nestDate > bandDate &
-          bandDate > aprilEnd)) {
-        # note that our new measured date is this one...
-        nest_data$F.Day.measured[nestDataIdx] <- bandDate
-        # update the measurements...body....
-        if (! is.na(bandDataTable$Wing.Chord[i]) ) {
-          nest_data$F.Wing..mm.[nestDataIdx] = bandDataTable$Wing.Chord[i]
-        }
-        if (! is.na(bandDataTable$Tarsus[i]) ) {
-          nest_data$F.Tarsus..mm.[nestDataIdx] = bandDataTable$Tarsus[i]
-        }         
-        if (! is.na(bandDataTable$Mass[i]) ) {
-          nest_data$F.Mass..g.[nestDataIdx] = bandDataTable$Mass[i]
-        }
-        if (! is.na(bandDataTable$Ninth.Primary[i]) ) {
-          nest_data$F.Nineth.Primary..mm.[nestDataIdx] = bandDataTable$Ninth.Primary[i]
-        }
-        didUpdate = TRUE
-      }
-      if (exists(id, hash_male)){
-        nestDataIdx <- get(id, hash_male)
-      
-        nestDate <- nest_data$F.Day.measured[nestDataIdx]
-        if (is.na(nestDate) | 
-            (nestDate > bandDate &
+    #print(id)
+    for (sex in c("M", "F")) {
+      if (exists(id, hashList[[sex]])) {
+        nestDataIdx <- get(id, hashList[[sex]])
+        
+        mkey <- paste(sex, "Day.measured", sep = ".")
+        nestDate <- nest_data[[mkey]][nestDataIdx]
+        if (is.na(nestDate) || 
+            (nestDate > bandDate &&
              bandDate > aprilEnd)) {
           # note that our new measured date is this one...
-          nest_data$M.Day.measured[nestDataIdx] <- bandDate
-          # update the measurements...body....
-          if (! is.na(bandDataTable$Wing.Chord[i]) ) {
-            nest_data$M.Wing..mm.[nestDataIdx] = bandDataTable$Wing.Chord[i]
+          nest_data[[mkey]][nestDataIdx] <- bandDate
+          # update the measurements..
+          for (d in substList[[sex]]) {
+            to <- d[1]
+            from <- d[2]
+            if (! is.na(bandDataTable[[from]])) {
+              nest_data[[to]][nestDataIdx] <- bandDataTable[[from]][i]
+            }
           }
-          if (! is.na(bandDataTable$Tarsus[i]) ) {
-            nest_data$M.Tarsus..mm.[nestDataIdx] = bandDataTable$Tarsus[i]
-          }         
-          if (! is.na(bandDataTable$Mass[i]) ) {
-            nest_data$M.Mass..g.[nestDataIdx] = bandDataTable$Mass[i]
-          }
-          if (! is.na(bandDataTable$Ninth.Primary[i]) ) {
-            nest_data$M.Nineth.Primary..mm.[nestDataIdx] = bandDataTable$Ninth.Primary[i]
-          }
+          didUpdate <- TRUE
         }
-        didUpdate = TRUE
       }
     }
   }
