@@ -10,7 +10,7 @@ for (i in 1:length( band$Band.Number)){
   bandID<-as.character(band$Band.Number[i])
   if(!is.na(bandID) ){
     if(exists(bandID, hash_allbirds)){
-    assign(as.character(bandID), append(x=bandID, values=i), hash_allbirds)  
+    assign(as.character(bandID), append(x=get(bandID, hash_allbirds), values=i), hash_allbirds)  
     } else
       {assign(as.character(bandID), i, hash_allbirds)
       } #This if else makes sure that if a bird shows up multiple years, where to look it up will show up multiple years as well. 
@@ -33,7 +33,6 @@ filestoaddto<-list.files("~/Masters Thesis Project/Tree Swallow Data/Amelia TRES
 
 
 #We have to fix the dates on the band data so that it's useful (IE we know what the year is and can pull out a 2 digit year to compare with the year in the nest data)
-as.integer(band$Date) #NAs introduced by coersion because of the damn ? marks. I think I need to go through the file and check those out but for now I'll just ignore it
 
 
 for( i in 1:length(band$Date)){
@@ -62,40 +61,49 @@ for(a in 1:length(filestoaddto)){
   
   b=0
   
-  for (bandID in as.character(nestdata$FemaleID)){
+  for (birdID in as.character(nestdata$FemaleID)){
     b= b + 1
-    if(!exists(bandID, hash_allbirds)){
-      print(paste("Warning:", bandID, "not found in master band database", sep=" "))
-    }
-    if (exists(bandID, hash_allbirds)){
-      bandIdx<-get(bandID, hash_allbirds) #list of all the places this band ID shows up
-      returnIdx = 0
-      for(c in bandIdx){
-        returnIdx = returnIdx + 1
-        if (returnIdx == 1 & band$Year[c] == nestdata$Year[b]) {
-          nestdata$F.Return.Status[b] <- "New"
-        } #close new if
-        else {
+    if(!is.na(birdID)){
+      if(!exists(birdID, hash_allbirds)){
+        print(paste("Warning:", birdID, "not found in master band database: Check line", b, sep=" "))
+      }
+      if (exists(birdID, hash_allbirds)){
+        bandIdx<-get(birdID, hash_allbirds) #list of all the places this band ID shows up
+        returnIdx = 0
+        for(c in bandIdx){
+          returnIdx = returnIdx + 1
+          #For the new bird if, I've included a statement that shows that if the year that it showed up in 
+          #first is less than the year that is shown in the banding data, then we mark it as a new bird 
+          #because it looks like some of the birds in 1975 didn't get added to the banding data
+          if (returnIdx == 1 & (band$Year[c] >= nestdata$Year[b])) {
+            nestdata$F.Return.Status[b] <- "New"
+          } #close new if
           
-          if (band$Year[c]==nestdata$Year[b] & band$Previous.Capture.[bandIdx[returnIdx-1]]=="N"){
-            nestdata$F.Return.Status[b]=="Recruit"
-          } #close recruit if 
-          #currently recruit if your previous sighting was as a nestling, regardless of how many years ago that was.
-          else{
-            if(band$Year[c]==nestdata$Year[b]){            
-              nestdata$F.Return.Status[b]=="Return"
-            }#close return if
-          }#close else
-          
-        }#close recruit/return else
-        
+          else {
+            
+            if (band$Year[c]==nestdata$Year[b] & band$Previous.Capture.[bandIdx[returnIdx-1]]=="N"){
+              if(band$Year[bandIdx[returnIdx-1]]-band$Year[c]==1){
+                nestdata$F.Return.Status[b]=="Recruit"
+              } 
+              else{
+                nestdata$F.Return.Status[b]=="Slow Recruit"
+              }
+            } #close recruit if 
+            #currently recruit if your previous sighting was as a nestling, regardless of how many years ago that was.
+            else{
+              if(band$Year[c]==nestdata$Year[b]){            
+                nestdata$F.Return.Status[b]=="Return"
+              }#close return if
+            }#close else
+            
+          }#close recruit/return else
+        }
       } #close for
       
     } #closer if
     
   } #close for
-filename<-paste("Nest update w recruit", nestdata$Year[1], sep=" ")
-write.csv(x=nestdata, file=filename, na="")  
+  filename<-paste("Nest update w recruit ", nestdata$Year[1], ".csv"  ,sep="")
+  write.csv(x=nestdata, file=filename, na="")  
 } #close for
-
 
