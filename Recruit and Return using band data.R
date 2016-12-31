@@ -70,49 +70,57 @@ nestDataFileList <- list.files(inputNestDataDir)
 
 # need to process the nest data files in order of year - so we can extract the
 #   the appearances of each bird, in order.
-fileDataList = matrix(data = NA, ncol = 2, dimnames = list(NA, c("year", "file")))
-i = 0
+
+ 
+fileDataList=list()
 for (fname in nestDataFileList) {
-  if (0 == length(grep("^[^0-9]+([0-9]+)\\.csv$", fname))) {
+  if (0 == length(grep("^[^0-9]+([0-9]+)[^0-9]*\\.csv$", fname))) {
     print(sprintf("'%s' does not seem to be an input data file - skipping", fname))
     next
   }
-  i = i + 1
-  fileDataList$year[i] <- gsub("^[^0-9]+([0-9]+)\\.csv$", "\\1", fname, perl=TRUE)
-  fileDataList$file[i] <- fname
+  
+  
+  fileDataList <- rbind(fileDataList, 
+                        c(gsub("^[^0-9]+([0-9]+)[^0-9]*\\.csv$", "\\1", fname, perl=TRUE),
+                          fname))
 }
+colnames(fileDataList) <- c("year", "file")
+
 # now sort in order of year...
-fileDataList <- fileDataList[order(as.integer(fileDataList%Year)), ]
+fileDataList <- fileDataList[order(as.integer(fileDataList[,1])), ]
 
 #Where do you want the good finished data to go?
 destinationDir <- paste(dataDirectoryBase, "Recruit and Return Added", sep = "/")
 setwd(destinationDir)
 
-attributes = list(list("F", "FemaleID"),
-                  list("M", "MaleID"))
+attributes = list(c("F", "FemaleID"),
+                  c("M", "MaleID"))
 
 #now lets loop through the files adding a recruitment and a return status for the females
 for(a in 1:length(nestDataFileList)){
-  fname <- nestDataFileList$file[a]
-  year <- nestDataFileList$year[a]
+  fname<-fileDataList[[a, 2]]
+  year<-fileDataList[[a,1]]
   nestdata<-read.csv(paste(inputNestDataDir, fname, sep="/"), 
                      as.is = TRUE, na.strings = c("NA", ""))
+
   
-  
-  for (d in attributes) {
-    sex = d[1]
-    birdIdKey = d[2]
+ #make it so it will run through bot sexes 
+  for (d in 1:length(attributes)) {
+    sex = attributes[[d]][1]
+    birdIdKey = attributes[[d]][2]
   
     rtnStatusKey = paste(sex, "Return.Status", sep = ".")
-    if (! rtnStatusKey in nestdata) {
-      nestdata[[rtnStatusKey] <- rep(NA, nrow(nestdata))
+    if (! rtnStatusKey %in% colnames(nestdata)) {
+      nestdata[[rtnStatusKey]] <- rep(NA, nrow(nestdata))
     }
     b=0
+    
+    
     for (birdID in as.character(nestdata[[birdIdKey]])) {
       b = b + 1
       if(!is.na(birdID)){
         if(!exists(birdID, hash_allbirds)){
-          print(sprintf("Warning: %s %d not found in master band database: Check line %d", sex, birdId, b))
+          print(paste("Warning:", sex, birdID, "from",  year, "not found in band record" ))
           next
         }
         if (is.na(nestdata$Year[b])) {
@@ -172,7 +180,7 @@ for(a in 1:length(nestDataFileList)){
             }#close else
             
           }#close recruit/return else
-          
+        }    
       } #close for
       
     } #closer if
