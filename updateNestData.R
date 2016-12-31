@@ -30,9 +30,9 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
     l = list()
     i = 0
     for (d in list(
-      c("Wing..mm.", "Wing.Chord"),
-      c("Tarsus..mm.", "Tarsus"),
-      c("Mass..g.", "Mass"),
+      c("Wing..mm.",           "Wing.Chord"),
+      c("Tarsus..mm.",         "Tarsus"),
+      c("Mass..g.",            "Mass"),
       c("Nineth.Primary..mm.", "Ninth.Primary")
     )) {
       i = i + 1
@@ -43,6 +43,12 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
   }
   
   nest_data <- read.csv(nestDataCsvFile, as.is=TRUE, na.strings = c("NA", ""))
+  # could run through the frame just created, to see if it contains the
+  #  column names we are going to create - and to create them, if they do not already
+  #  exist.
+  # Similarly, could look through, to check that there are no duplicate column
+  #   names, that any columns that we expect to be fully specified, are (i.e., no
+  #   NA values, no values out-of-range, etc)
 
   for (i in 1:length(nest_data)){
     
@@ -52,8 +58,14 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
       key = d[2]
       
       id <- nest_data[[key]][i]
-      if (! is.na(id) ){
-        assign(as.character(fId), i, hashList[sex])
+      if (! is.na(id)){
+        k = as.character(id)
+        if (exisits(hashList[sex], k)) {
+          # append to list...
+          append(get(k, hashList[sex]), i)
+        } else {
+          assign(k, i, hashList[sex])
+        }
       }
     }
   }
@@ -65,7 +77,7 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
   yearEnd = (currentYear * 10000) + (12 * 100) + 31
   yearBegin = (currentYear * 10000);
 
-  didUpdate = FALSE
+  numUpdates = 0
   i <- 0
   for(id in as.character(bandDataTable$Band.Number)){
     i <- i + 1
@@ -73,7 +85,7 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
     bandDate <- as.integer(bandDataTable$Date[i]) #..so this doesn't work
     #bandDate = as.integer(as.character(bandDataTable$Date[i]))
     #print(bandDate)
-    if (is.na(bandDate) || bandDate > yearEnd) {
+    if (is.na(bandDate) | bandDate > yearEnd) {
       # assumes that data is sorted by year - such that every element below this one is a later
       # date...if this one is after the end of the year, then the rest are too.
       break
@@ -84,33 +96,33 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
     #print(id)
     for (sex in c("M", "F")) {
       if (exists(id, hashList[[sex]])) {
-        nestDataIdx <- get(id, hashList[[sex]])
         
-        mkey <- paste(sex, "Day.measured", sep = ".")
-        nestDate <- nest_data[[mkey]][nestDataIdx]
-        if (is.na(nestDate) || 
-            (nestDate > bandDate &&
-             bandDate > aprilEnd)) {
-          # note that our new measured date is this one...
-          nest_data[[mkey]][nestDataIdx] <- bandDate
-          # update the measurements..
-          for (d in substList[[sex]]) {
-            to <- d[1]
-            from <- d[2]
-            if (! is.na(bandDataTable[[from]])) {
-              nest_data[[to]][nestDataIdx] <- bandDataTable[[from]][i]
+        for (nestDataIdx in get(id, hashList[sex])) {
+        
+          mkey <- paste(sex, "Day.measured", sep = ".")
+          nestDate <- nest_data[[mkey]][nestDataIdx]
+          if (is.na(nestDate) | 
+              (nestDate > bandDate &
+               bandDate > aprilEnd)) {
+            # note that our new measured date is this one...
+            nest_data[[mkey]][nestDataIdx] <- bandDate
+            # update the measurements..
+            for (d in substList[[sex]]) {
+              to <- d[1]
+              from <- d[2]
+              if (! is.na(bandDataTable[[from]])) {
+                nest_data[[to]][nestDataIdx] <- bandDataTable[[from]][i]
+              }
             }
+            numUpdates = numUpdates + 1
           }
-          didUpdate <- TRUE
         }
       }
     }
   }
 
-  if (didUpdate){
-    print("We updated something...")
+  if (0 != numUpdates){
+    print(sprintf("Updated %d entries", numUpdates))
   }
-  rm(hash_male)
-  rm(hash_female)
   return(nest_data)
 }
