@@ -1,4 +1,4 @@
-#Function to fill in any bird IDs that are known in the banding data but aren't entered into the nestdata
+#Function to fill in any  adult bird IDs that are known in the banding data but aren't entered into the nestdata
 
 #Requires that the banding data has already been fixed to include a year column
 #and a non julian date column 
