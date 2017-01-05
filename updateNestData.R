@@ -22,6 +22,7 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
   #           integer "YYMMDD"
   #       - if band date is earlier than this year:  go to next band data entry
   #         if band data is later than this year:  we are done
+  nest_data <- read.csv(nestDataCsvFile, as.is=TRUE, na.strings = c("NA", ""))
   
   substList = list()
   hashList = list()
@@ -39,10 +40,10 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
       l[[i]] <-  c(paste(sex, d[1], sep = "."), d[2])
     }
     substList[[sex]] = l
-    hashList[[sex]] = new.env(hash=TRUE, parent=emptyenv(), size=length(nest_data))
+    hashList[[sex]] = new.env(hash=TRUE, parent=emptyenv(), size=length(nest_data$BoxID))
   }
   
-  nest_data <- read.csv(nestDataCsvFile, as.is=TRUE, na.strings = c("NA", ""))
+  
   # could run through the frame just created, to see if it contains the
   #  column names we are going to create - and to create them, if they do not already
   #  exist.
@@ -50,9 +51,9 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
   #   names, that any columns that we expect to be fully specified, are (i.e., no
   #   NA values, no values out-of-range, etc)
 
-  for (i in 1:length(nest_data)){
+  for (i in 1:length(nest_data$BoxID)){
     
-    for (d in list(C("M", "MaleID"),
+    for (d in list(c("M", "MaleID"),
                    c("F", "FemaleID"))) {
       sex = d[1]
       key = d[2]
@@ -60,18 +61,18 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
       id <- nest_data[[key]][i]
       if (! is.na(id)){
         k = as.character(id)
-        if (exisits(hashList[sex], k)) {
+        if (exists(k, hashList[[sex]] )) {
           # append to list...
-          append(get(k, hashList[sex]), i)
+          append(get(k, hashList[[sex]]), i)
         } else {
-          assign(k, i, hashList[sex])
+          assign(k, i, hashList[[sex]])
         }
       }
     }
   }
 
   # check that the hash was constructed correctly...
-  #ls(hash_female, all.names = TRUE)
+  #ls(hashList[[sex]], all.names = TRUE)
 
   aprilEnd = (currentYear * 10000) + (4 * 100) + 30
   yearEnd = (currentYear * 10000) + (12 * 100) + 31
@@ -93,11 +94,11 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
       next
     }
     
-    #print(id)
+    print(id)
     for (sex in c("M", "F")) {
       if (exists(id, hashList[[sex]])) {
         
-        for (nestDataIdx in get(id, hashList[sex])) {
+        for (nestDataIdx in get(id, hashList[[sex]])) {
         
           mkey <- paste(sex, "Day.measured", sep = ".")
           nestDate <- nest_data[[mkey]][nestDataIdx]
@@ -110,7 +111,7 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
             for (d in substList[[sex]]) {
               to <- d[1]
               from <- d[2]
-              if (! is.na(bandDataTable[[from]])) {
+              if (! is.na(bandDataTable[[from]][i])) {
                 nest_data[[to]][nestDataIdx] <- bandDataTable[[from]][i]
               }
             }
