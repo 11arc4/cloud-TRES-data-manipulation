@@ -2,10 +2,8 @@
 setwd("~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/R Script for adding in  adult body metrics")
 band<-read.csv("TRESBAND_75-01.csv", as.is=TRUE, na.strings = c("", "NA"))
 
-setwd("~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/R Script for adding in  adult body metrics")
-
-nestDataDir = "C:/Users/Amelia/Documents/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/FINAL QC DONE"
-resultDir = "./mangled"
+nestDataDir = "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data/1 All available adult band IDs added"
+resultDir = "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data/3 adult morphometrics added"
 
 if ( ! dir.exists(resultDir)) {
   dir.create(resultDir, recursive=TRUE)
@@ -23,7 +21,9 @@ for (fn in nestDataFiles) {
     next
   }
   print(paste("processing nest data", fn))
-  year = as.integer(gsub(nameExp, "\\1", fn,perl=TRUE))
+
+  year = as.integer(unlist(regmatches(fn, gregexpr("[[:digit:]]+", fn))))
+
   if ( year < 2000) {
     year = year - 1900
   }

@@ -63,11 +63,11 @@ globalBirdDataHash <- new.env(hash = TRUE, size = 1000)
 #because I'm running through only the adults!
 
 
-dataDirectoryBase <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/R Script for adding in  adult body metrics"
+dataDirectoryBase <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
 
 #Here make sure that you are importing the right data! You will want the data saved 
 # in Malaria and Adult Metrics added so that you are adding to this file properly
-inputNestDataDir = paste(dataDirectoryBase, "Malaria and Adult metrics added",
+inputNestDataDir <- paste(dataDirectoryBase, "4 malaria status added",
                          sep = "/")
 nestDataFileList <- list.files(inputNestDataDir)
 
@@ -91,7 +91,7 @@ colnames(fileDataList) <- c("year", "file")
 fileDataList <- fileDataList[order(as.integer(fileDataList[,1])), ]
 
 #Where do you want the good finished data to go?
-destinationDir <- paste(dataDirectoryBase, "Recruit and Return Added", sep = "/")
+destinationDir <- paste(dataDirectoryBase, "5 added return status", sep = "/")
 setwd(destinationDir)
 
 #now lets loop through the files adding a recruitment and a return status for the females
