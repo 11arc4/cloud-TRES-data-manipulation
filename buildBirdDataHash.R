@@ -1,24 +1,21 @@
 #function to build the global hash from the nest data (ie track birds as they
 #show up in the nest data, instead of the band data)
 
-buildBirdDataHash <-function(dir.uploadfrom, filename, year, hash) {
+buildBirdDataHash <- function(nestdata, year, hash) {
   
-  attributes = matrix(ncol=2, byrow=TRUE, data=c(c("F", "FemaleID"),
-                                                 c("M", "MaleID")))
+  attributes = list(c("F", "FemaleID"),
+                    c("M", "MaleID"))
   for (i in 1:10) {
-    attributes <- rbind(attributes, c("N", paste("band", i, sep = ".")))
+    attributes <- append(attributes, list(c("N", paste("band", i, sep = "."))))
   }
-  attributes = as.data.frame(attributes,
-                             stringsAsFactors = FALSE)
-  names(attributes) <- c("sex", "key")
-  nestdata<-read.csv(paste(dir.uploadfrom, filename, sep="/"), 
-                     as.is = TRUE, na.strings = c("NA", ""))
+ 
+  colnames(attributes) <- c("sex", "key")
   
-  for (d in 1:length(attributes)) {
-    sex = attributes$sex[d]
-    birdIdKey = attributes$key[d]
+  for (attr in attributes) {
+    sex = attr[1]
+    birdIdKey = attr[2]
     
-    if ( ! birdIdKey %in% colnames(nestdata)) {
+    if (! birdIdKey %in% colnames(nestdata)) {
       next
     }
     b=0
@@ -33,7 +30,7 @@ buildBirdDataHash <-function(dir.uploadfrom, filename, year, hash) {
         # could check that this bird isn't already in the list for this year -
         #   right now, can (and does) happen when the bird has 2 nests in the same year -
         #   at present, we add it into this list once for each nest...
-        assign(birdID, append(current, list(list(year, sex))), hash)
+        assign(birdID, append(current, list(c(year, sex))), hash)
         # check consistency..
         start <- 0
         for (d in get(birdID, hash)) {
@@ -44,7 +41,7 @@ buildBirdDataHash <-function(dir.uploadfrom, filename, year, hash) {
           # appearances are all either M or F...
         }
       } else {
-        assign(birdID, list(list(year, sex)), hash)
+        assign(birdID, list(c(year, sex)), hash)
       }
     } # for each bird in column
   }# for each attribute

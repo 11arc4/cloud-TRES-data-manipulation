@@ -25,10 +25,11 @@ for (i in 1:length(band$Date)){
     }
   }
 }
-#now band data is all sorted by year
-band <- band[order(band$Year), ]
+#now band data is all sorted by year then by nest location within the year
+band <- band[with(band, order(-Year, Nest)), ]
 
-#First we are going to need to make a hash table of all the birds, with a list inside for all the times they show up
+#First we are going to need to make a hash table of all the birds, with a list
+#inside for all the times they show up
 
 hash_allbirds <- new.env(hash=TRUE, parent=emptyenv(), size=(length(band$Band.Number)))
 
@@ -50,13 +51,16 @@ globalBirdDataHash <- new.env(hash = TRUE, size = 1000)
 #ls(hash_allbirds, all.names = TRUE)
 #Yay! Hash successful
 
-# I have this lovely key with all the birds entered by band number, with look ups to the different years they showed up in
-#Now I'd like to take a year of data, and check to see whether one of those adults shows up in the hash table
-#It should show up--if not then we have an issue with the data and I need to know (PRINT YOURSELF A WARNING)
-#When the bird band matches with the hash table then I need to loop through the list to check to be sure that I'm matching with the right year
-#Then I need to use and if to see if there was a previous year in the list.
-#If yes, then the bird is either a recruit or a return, depending on whether the previousl year was a nestling
-#If no, then the bird is a new bird because I'm running through only the adults!
+#I have this lovely key with all the birds entered by band number, with look ups
+#to the different years they showed up in Now I'd like to take a year of data,
+#and check to see whether one of those adults shows up in the hash table It
+#should show up--if not then we have an issue with the data and I need to know
+#(PRINT YOURSELF A WARNING) When the bird band matches with the hash table then
+#I need to loop through the list to check to be sure that I'm matching with the
+#right year Then I need to use and if to see if there was a previous year in the
+#list. If yes, then the bird is either a recruit or a return, depending on
+#whether the previousl year was a nestling If no, then the bird is a new bird
+#because I'm running through only the adults!
 
 
 dataDirectoryBase <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/R Script for adding in  adult body metrics"
@@ -74,7 +78,7 @@ fileDataList=list()
 for (fname in nestDataFileList) {
   matchStr = "^[^0-9]+([0-9]+)[^0-9]*\\.csv$"
   if (0 == length(grep(matchStr, fname))) {
-    print(sprintf("'%s' does not seem to be an input data file - skipping", fname))
+    message("'", fname, "' does not seem to be an input data file - skipping")
     next
   }
   
@@ -94,13 +98,16 @@ setwd(destinationDir)
 for(a in 1:length(nestDataFileList)){
   fname <- fileDataList[[a, 2]]
   year <- as.integer(fileDataList[[a, 1]])
-  nestdata <- AssignReturnStatus(inputNestDataDir, fname, hash_allbirds, year, band,
+  nestdata <- read.csv(paste(inputNestDataDir, fname, sep="/"), 
+                       as.is = TRUE, na.strings = c("NA", ""))
+  
+  nestdata <- AssignReturnStatus(nestdata, year, hash_allbirds, band,
                                  globalBirdDataHash)
   
-  filename<-paste("Nest update w recruit ", nestdata$Year[1], ".csv"  ,sep="")
+  filename <- paste("Nest update w recruit ", nestdata$Year[1], ".csv"  ,sep="")
   write.csv(x=nestdata, file=filename, na="", row.names=FALSE)
   
   # and update the global bird data...
-  globalBirdDataHash <- buildBirdDataHash(inputNestDataDir, fname, year, globalBirdDataHash)
+  globalBirdDataHash <- buildBirdDataHash(nestdata, year, globalBirdDataHash)
 } #close for
 

@@ -13,18 +13,26 @@ if ( ! dir.exists(resultDir)) {
 
 nestDataFiles <- list.files(nestDataDir)
 for (fn in nestDataFiles) {
-  if (0 == length(grep("^[^0-9]+([0-9]+)\\.csv$", fn))) {
+  # regular expression for file name:
+  #   - string start (^)
+  #   - one or more non-digits ([^0-9]+)
+  #   - one or more digits
+  #   - ending in ".csv"
+  nameExp = "^[^0-9]+([0-9]+)\\.csv$"
+  if (0 == length(grep(nameExp, fn))) {
     next
   }
   print(paste("processing nest data", fn))
-  year = as.integer(gsub("^[^0-9]+([0-9]+)\\.csv$", "\\1", fn,perl=TRUE))
+  year = as.integer(gsub(nameExp, "\\1", fn,perl=TRUE))
   if ( year < 2000) {
     year = year - 1900
   }
-  fileName = paste(nestDataDir, fn, sep="/")
-  d = updateNestData(fileName, year, band)
+  inputNestDataCsvFile <- paste(nestDataDir, fn, sep="/")
+  nest_data <- read.csv(inputNestDataCsvFile, as.is=TRUE, na.strings = c("NA", ""))
+  
+  updatedNestData <- updateNestData(nest_data, year, band)
+  
   resultFile = paste("updated nest data ", as.character(year), ".csv", sep="")
   output = paste(resultDir, resultFile, sep="/")
-  write.csv(d, file=output, na="", row.names=FALSE)
+  write.csv(updatedNestData, file=output, na="", row.names=FALSE)
 }
-#d = updateNestData("Nest level data 1983.csv", 83, band)

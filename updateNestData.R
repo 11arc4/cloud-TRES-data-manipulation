@@ -1,6 +1,6 @@
 
 
-updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
+updateNestData <- function (nest_data, currentYear, bandDataTable) {
   # nesDataCsvFile:  file name (string)
   # currentYear: 2-digit integer
   # bandDataTable:  table of swallow band data
@@ -42,7 +42,6 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
     hashList[[sex]] = new.env(hash=TRUE, parent=emptyenv(), size=length(nest_data))
   }
   
-  nest_data <- read.csv(nestDataCsvFile, as.is=TRUE, na.strings = c("NA", ""))
   # could run through the frame just created, to see if it contains the
   #  column names we are going to create - and to create them, if they do not already
   #  exist.
@@ -50,7 +49,7 @@ updateNestData <- function (nestDataCsvFile, currentYear, bandDataTable) {
   #   names, that any columns that we expect to be fully specified, are (i.e., no
   #   NA values, no values out-of-range, etc)
 
-  for (i in 1:length(nest_data)){
+  for (i in 1:length(nest_data)) {
     
     for (d in list(C("M", "MaleID"),
                    c("F", "FemaleID"))) {
