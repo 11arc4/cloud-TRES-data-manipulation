@@ -50,6 +50,12 @@ for (date in banddata$Date){
 
 banddata$JDate<-yday(banddata$NJDate)
 
+#This code is to take care of a weird issue in the Place column--It appears that
+#a couple of the entries are empty instead of NA which fucks up some of the
+#later code that I try to run. So I've fixed it!
+
+
+
 resultdir<-"~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
 filename<- "Updated band data 1975-2001.csv"
-write.csv(banddata, file=paste(resultdir, filename, sep="/"),  row.names = FALSE, na="")
+write.csv(banddata, file=paste(resultdir, filename, sep="/"),  row.names = FALSE)
