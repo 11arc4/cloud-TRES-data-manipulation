@@ -3,6 +3,11 @@
 
 buildBirdDataHash <- function(nestdata, year, hash) {
   
+  # we are looking for band IDs in the nest data columns 'FemaleID', 'MaleID',
+  #   and 'band.1' through 'band.10'.
+  #   We check that the column exists before doing anything - so there it does not
+  #   matter whether the nestling columns exist or not.
+  # sex keys are 'F', 'M', and 'N' (for nestling whose sex we don't know yet)
   attributes = list(c("F", "FemaleID"),
                     c("M", "MaleID"))
   for (i in 1:10) {
@@ -16,6 +21,7 @@ buildBirdDataHash <- function(nestdata, year, hash) {
     birdIdKey = attr[2]
     
     if (! birdIdKey %in% colnames(nestdata)) {
+      # column doesn't exist (e.g., no such nestling column...skip)
       next
     }
     b=0

@@ -11,10 +11,6 @@ AssignReturnStatus <-
   attributes = list(c("F", "FemaleID"),
                     c("M", "MaleID"))
   
-  nestdata<-read.csv(paste(inputNestDataDir, fname, sep="/"), 
-                     as.is = TRUE, na.strings = c("NA", ""))
-  
-  
   #make it so it will run through both sexes 
   for (d in 1:length(attributes)) {
     sex = attributes[[d]][1]

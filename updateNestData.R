@@ -22,8 +22,7 @@ updateNestData <- function (nest_data, currentYear, bandDataTable) {
   #           integer "YYMMDD"
   #       - if band date is earlier than this year:  go to next band data entry
   #         if band data is later than this year:  we are done
-  nest_data <- read.csv(nestDataCsvFile, as.is=TRUE, na.strings = c("NA", ""))
-  
+
   substList = list()
   hashList = list()
 
