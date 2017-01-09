@@ -1,6 +1,6 @@
 #Use the updatenestlings function to update all the different files
 
-if ("amelia" == Sys.getenv("USER")) {
+if ("Amelia" == Sys.getenv("USERNAME")) {
   topLevelDir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016"
   # input files...
   nestDataInDir <- paste(topLevelDir, 
@@ -12,7 +12,6 @@ if ("amelia" == Sys.getenv("USER")) {
                             sep = "/")
   bandDataDir <- paste(sep = "/",
                        topLevelDir,
-                       "Amelia TRES data 1975-2016",
                        "Improved and Cleaned Data")
   bandDataFile <- "Updated band data 1975-2001.csv"
   

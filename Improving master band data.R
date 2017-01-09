@@ -61,7 +61,7 @@ fixUpBandData <- function(banddata) {
   return(banddata)
 }
 
-if ("amelia" == Sys.getenv("USER")) {
+if ("Amelia" == Sys.getenv("USERNAME")) {
   topLeveDir <- "~/Masters Thesis Project/Tree Swallow Data/TRES data"
   bandDataDir = paste(sep = "/", topLevelDir,
                       "Data Sets I really need to ADD to my current dataset")
