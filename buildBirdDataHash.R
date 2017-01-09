@@ -1,6 +1,19 @@
 #function to build the global hash from the nest data (ie track birds as they
 #show up in the nest data, instead of the band data)
 
+#' buildBirdDataHash
+#' This is a function that builds a bird data hash of bandIDs found in the
+#' nestling data, sorted by year of occurance. Each year is also tagged based on
+#' the sex of the bird during that year (F, M, or N (for nestling))
+#'
+#' @param nestdata This is the current year's nest data that we will be adding into the hash key
+#' @param year The year of the nest that the bird was found in
+#' @param hash The name of the hash we are inputting to be filled in by our nest data. This allows you to link functions to add many years worth of nest data
+#'
+#' @return hash The name of the output hash. 
+#' @export
+#'
+#' @examples
 buildBirdDataHash <- function(nestdata, year, hash) {
   
   # we are looking for band IDs in the nest data columns 'FemaleID', 'MaleID',
@@ -14,8 +27,7 @@ buildBirdDataHash <- function(nestdata, year, hash) {
     attributes <- append(attributes, list(c("N", paste("band", i, sep = "."))))
   }
  
-  colnames(attributes) <- c("sex", "key")
-  
+
   for (attr in attributes) {
     sex = attr[1]
     birdIdKey = attr[2]
