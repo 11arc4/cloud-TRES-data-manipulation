@@ -11,23 +11,7 @@ for (i in 1:length(malaria$ID)){
   }
 }
 
-#making the list of data files we'd like to look at
-#ls(hash_malaria, all.names = TRUE)
-nestDataFiles <- list.files(sourcedir)
 
-#loop through all of the files to make a better version of each of them
-for (i in 1:length(nestDataFiles)) {
-  
-  nestdata <- read.csv(paste(sourcedir, nestDataFiles[i], sep="/"), 
-                       as.is=TRUE, na.strings = c("NA", ""))  
- 
-  nestdata <- updateMalariaStatus(nestdata,hash_malaria)
-
-  #write the csv files into a new location
-  write.csv(x=nestdata, file=
-            paste(sinkdir, "/Nest data ", nestdata$Year [2], " with malaria and adult.csv", sep=""),
-            row.names=FALSE , na="")
-}
 
 updateMalariaStatus <- function(nestdata, hash_malaria) {
   nestdata$F.Malaria.Status <- rep(NA, nrow(nestdata))
@@ -68,5 +52,21 @@ updateMalariaStatus <- function(nestdata, hash_malaria) {
   return(nestdata)
 }
 
+#making the list of data files we'd like to look at
+#ls(hash_malaria, all.names = TRUE)
+nestDataFiles <- list.files(sourcedir)
 
+#loop through all of the files to make a better version of each of them
+for (i in 1:length(nestDataFiles)) {
+  
+  nestdata <- read.csv(paste(sourcedir, nestDataFiles[i], sep="/"), 
+                       as.is=TRUE, na.strings = c("NA", ""))  
+  
+  nestdata <- updateMalariaStatus(nestdata,hash_malaria)
+  
+  #write the csv files into a new location
+  write.csv(x=nestdata, file=
+              paste(sinkdir, "/Nest data ", nestdata$Year [2], " with malaria and adult.csv", sep=""),
+            row.names=FALSE , na="")
+}
   
