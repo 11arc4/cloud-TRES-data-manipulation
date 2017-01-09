@@ -62,22 +62,25 @@ fixUpBandData <- function(banddata) {
 }
 
 if ("Amelia" == Sys.getenv("USERNAME")) {
-  topLeveDir <- "~/Masters Thesis Project/Tree Swallow Data/TRES data"
-  bandDataDir = paste(sep = "/", topLevelDir,
+  topLevelDir <- "~/Masters Thesis Project/Tree Swallow Data"
+  bandDataDir = paste(sep = "/", topLevelDir, "TRES data", 
                       "Data Sets I really need to ADD to my current dataset")
   bandDataFile = "TRESBAND_75-01.csv"
 
   resultdir <- paste(sep = "/", topLevelDir, "Amelia TRES data 1975-2016",
                      "Improved and Cleaned Data")
+  banddata <- read.csv(paste(bandDataDir, bandDataFile, sep = "/"),
+                       as.is=TRUE, na.strings = c("", "NA"))
 
 } else {
   topLevelDir <- "~/GitHub/cloud-TRES-data-manipulation/testData"
   bandDataFile <- "banddata.csv"
   resultdir <- paste(sep = "/", topLevelDir,
                      "cleanedBandData")
+  banddata <- read.csv(paste(topLevelDir, bandDataFile, sep = "/"),
+                       as.is=TRUE, na.strings = c("", "NA"))
 }
-banddata <- read.csv(paste(topLevelDir, bandDataFile, sep = "/"),
-                   as.is=TRUE, na.strings = c("", "NA"))
+
 
 bandata <- fixUpBandData(banddata)
 
