@@ -1,8 +1,9 @@
 
-setwd("~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/R Script for adding in  adult body metrics")
-band<-read.csv("TRESBAND_75-01.csv", as.is=TRUE, na.strings = c("", "NA"))
+banddir<-"~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/R Script for adding in  adult body metrics"
+bandfile<-paste(banddir, "TRESBAND_75-01.csv", sep="/")
+band<-read.csv(bandfile,  as.is=TRUE, na.strings = c("", "NA"))
 
-nestDataDir = "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data/1 All available adult band IDs added"
+nestDataDir = "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data/2 all nestlings added"
 resultDir = "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data/3 adult morphometrics added"
 
 if ( ! dir.exists(resultDir)) {
@@ -16,7 +17,7 @@ for (fn in nestDataFiles) {
   #   - one or more non-digits ([^0-9]+)
   #   - one or more digits
   #   - ending in ".csv"
-  nameExp = "^[^0-9]+([0-9]+)\\.csv$"
+  nameExp = "^[^0-9]+([0-9]+)+([^0-9]+)\\.csv$"
   if (0 == length(grep(nameExp, fn))) {
     next
   }
