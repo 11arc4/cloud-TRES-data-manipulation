@@ -82,14 +82,14 @@ if ("Amelia" == Sys.getenv("USERNAME")) {
 }
 
 
-bandata <- fixUpBandData(banddata)
+banddata2 <- fixUpBandData(banddata)
 
 filename<- "Updated band data 1975-2001.csv"
 
 if (! dir.exists(resultdir)) {
   dir.create(resultdir, recursive = TRUE)
 }
-write.csv(banddata, file=paste(resultdir, filename, sep="/"),
+write.csv(banddata2, file=paste(resultdir, filename, sep="/"),
           row.names = FALSE)
 
 
