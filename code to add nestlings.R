@@ -1,18 +1,16 @@
 #Use the updatenestlings function to update all the different files
 
 if ("Amelia" == Sys.getenv("USERNAME")) {
-  topLevelDir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016"
+  topLevelDir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
   # input files...
-  nestDataInDir <- paste(topLevelDir, 
-                         "Improved and Cleaned Data", 
+  nestDataInDir <- paste(topLevelDir,
                          "1 All available adult band IDs added",
                          sep = "/")
-  updatedResultDir <- paste(topLevelDir, "Improved and Cleaned Data",
+  updatedResultDir <- paste(topLevelDir, 
                             "2 all nestlings added",
                             sep = "/")
-  bandDataDir <- paste(sep = "/",
-                       topLevelDir,
-                       "Improved and Cleaned Data")
+  bandDataDir <-  topLevelDir
+                      
   bandDataFile <- "Updated band data 1975-2001.csv"
   
 } else {
@@ -31,6 +29,8 @@ if (!dir.exists(updatedResultDir)) {
   message("creating output directory ", updatedResultDir)
   dir.create(updatedResultDir, recursive = TRUE)
 }
+
+
 updateNestings_directory(sourcedir = nestDataInDir,
                          resultdir = updatedResultDir,
                          bandata = bandata) 

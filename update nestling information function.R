@@ -170,14 +170,9 @@ updateNestings_directory <- function(sourcedir, resultdir, bandata) {
     improveddata <-
       updatenestlings(nestdata = nestdata, banddata = banddata)
     message("Processing nest data ", nestdata$Year[1])
-    newfilename <-
-      paste("Nest Data", nestdata$Year[1], "updated with nestlings")
-    write.csv(
-      improveddata,
-      file = paste(resultdir, newfilename, sep = "/"),
-      na = "",
-      row.names = FALSE
-    )
+    newfilename <-paste("Nest Data", nestdata$Year[1], "updated with nestlings.csv") 
+    write.csv(improveddata, file = paste(resultdir, newfilename, sep = "/"),
+      na = "", row.names = FALSE)
     message("updated nest data ", nestdata$Year[1])
   }
 }
