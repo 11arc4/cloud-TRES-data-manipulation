@@ -106,7 +106,6 @@ for(a in 1:length(nestDataFileList)){
   message("proccessing nestdata from ", year)
   nestdata <- AssignReturnStatus_fromnestdata(nestdata, year, globalBirdDataHash)
   globalBirdDataHash <- buildBirdDataHash(nestdata, year, globalBirdDataHash)
-  
   filename <- paste("Nest update w recruit ", nestdata$Year[1], ".csv"  ,sep="")
   write.csv(x=nestdata, file=filename, na="", row.names=FALSE)
   message("updated nest data from ", year, " with recruitment status")
