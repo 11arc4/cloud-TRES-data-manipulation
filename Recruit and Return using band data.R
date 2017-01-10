@@ -2,7 +2,9 @@ library(assertthat)
 
 
 #Recruit, Return, Nestling or New Bird? 
-band<-read.csv("~/Masters Thesis Project/Tree Swallow Data/TRES data/Data Sets I really need to ADD to my current dataset/TRESBAND_75-01.csv" ,as.is=TRUE, na.strings = c("NA", ""))
+banddir<-"~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
+bandfile<-"Updated band data 1975-2001.csv"
+band<-read.csv(paste(banddir, bandfile, sep="/") ,as.is=TRUE, na.strings = c("NA", ""))
 
 #We have to fix the dates on the band data so that it's useful (IE we know what the year is and can pull out a 2 digit year to compare with the year in the nest data)
 
@@ -26,9 +28,9 @@ for (i in 1:length(band$Date)){
   }
 }
 #now band data is all sorted by year then by nest location within the year
-band <- band[with(band, order(-Year, Nest)), ]
+band <- band[with(band, order(-Year, Place)), ]
 
-#First we are going to need to make a hash table of all the birds, with a list
+#First we are going to need to make a hash table of all the birds found in the band data, with a list
 #inside for all the times they show up
 
 hash_allbirds <- new.env(hash=TRUE, parent=emptyenv(), size=(length(band$Band.Number)))
@@ -85,7 +87,6 @@ for (fname in nestDataFileList) {
   fileDataList <- rbind(fileDataList, c(gsub(matchStr, "\\1", fname, perl=TRUE),
                                         fname))
 }
-colnames(fileDataList) <- c("year", "file")
 
 # now sort in order of year...
 fileDataList <- fileDataList[order(as.integer(fileDataList[,1])), ]
@@ -101,13 +102,15 @@ for(a in 1:length(nestDataFileList)){
   nestdata <- read.csv(paste(inputNestDataDir, fname, sep="/"), 
                        as.is = TRUE, na.strings = c("NA", ""))
   
-  nestdata <- AssignReturnStatus(nestdata, year, hash_allbirds, band,
-                                 globalBirdDataHash)
+  # update the global bird data with this year's nest data so that all birds will show up at least once
+  message("proccessing nestdata from ", year)
+  nestdata <- AssignReturnStatus_fromnestdata(nestdata, year, globalBirdDataHash)
+  globalBirdDataHash <- buildBirdDataHash(nestdata, year, globalBirdDataHash)
   
   filename <- paste("Nest update w recruit ", nestdata$Year[1], ".csv"  ,sep="")
   write.csv(x=nestdata, file=filename, na="", row.names=FALSE)
+  message("updated nest data from ", year, " with recruitment status")
   
-  # and update the global bird data...
-  globalBirdDataHash <- buildBirdDataHash(nestdata, year, globalBirdDataHash)
 } #close for
+
 

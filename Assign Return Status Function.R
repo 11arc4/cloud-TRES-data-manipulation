@@ -1,57 +1,95 @@
 # return updated nest data (with return status for male and female updated)
-AssignReturnStatus <- 
+
+#' Title
+#'
+#' @param nestdata 
+#' @param year 
+
+#' @param hash_globalBirdData 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+AssignReturnStatus_fromnestdata <- 
   function(nestdata, # frame of nest data for year
            year, # integer year of this nest data
-           hash_allbirds, # all the birds which appear in the band data
-           band, # frame of band data
+           
            hash_globalBirdData = NA # some appearance data for every bird 
-                                    # we have eve seen (to date)
+           # we have eve seen (to date)
   ) {
-  
-  attributes = list(c("F", "FemaleID"),
-                    c("M", "MaleID"))
-  
-  #make it so it will run through both sexes 
-  for (d in 1:length(attributes)) {
-    sex = attributes[[d]][1]
-    birdIdKey = attributes[[d]][2]
     
-    rtnStatusKey = paste(sex, "Return.Status", sep = ".")
-    if (! rtnStatusKey %in% colnames(nestdata)) {
-      nestdata[[rtnStatusKey]] <- rep(NA, nrow(nestdata))
-    }
-    b=0
-    for (birdID in as.character(nestdata[[birdIdKey]])) {
-      b = b + 1
-      if (is.na(birdID)) {
-        next #THIS IS PROBABLY A GOOD PLACE TO PUT IN CODE THAT WILL UPDATE YOUR NEST DATA BAND IDS 
-        #BASED ON BANDING DATA EG FOR THE NORTH EAST SANCTUARY WHERE THERE ARE BIRDS BANDED BUT THEY
-        #AREN'T ASSIGNED IN THE NEST RECORDS
+    attributes = list(c("F", "FemaleID"),
+                      c("M", "MaleID"))
+    
+    #make it so it will run through both sexes 
+    for (d in 1:length(attributes)) {
+      sex = attributes[[d]][1]
+      birdIdKey = attributes[[d]][2]
+      
+      rtnStatusKey = paste(sex, "Return.Status", sep = ".")
+      if (! rtnStatusKey %in% colnames(nestdata)) {
+        nestdata[[rtnStatusKey]] <- rep(NA, nrow(nestdata))
       }
-      # first part:  look to see if this bird is in the global data or not
-      # (should always be there - if not, then there is a bug in the data...)
-      # - look at the last entry in the bird's data - to see what we know about
-      #   the bird from the last time we saw it (was it a nestling, a male, or a
-      #   female, what year was it)
-      birdReturnStatus <- NA
-      if (is.environment(hash_globalBirdData)) {
-        if (! exists(birdID, hash_globalBirdData)) {
-          warning(year, "  found ", birdID, " in nest data - but no entry in global bird DB")
-          birdReturnStatus <- "New"
-        } else {
-          prev = tail(get(birdID, hash_globalBirdData), n = 1)[[1]]
-          if ("N" == prev[[2]]) {
-            # nestling...
-            birdReturnStatus <- ifelse(prev[[1]] == (year - 1), "Recruit", "Slow Recruit")
-          } else {
-            birdReturnStatus <- "Return"
-          }
-          nestdata[[rtnStatusKey]][b] <- birdReturnStatus
-          next
+      b=0
+      for (birdID in as.character(nestdata[[birdIdKey]])) {
+        b = b + 1
+        if (is.na(birdID)) {
+          next #THIS IS PROBABLY A GOOD PLACE TO PUT IN CODE THAT WILL UPDATE YOUR NEST DATA BAND IDS 
+          #BASED ON BANDING DATA EG FOR THE NORTH EAST SANCTUARY WHERE THERE ARE BIRDS BANDED BUT THEY
+          #AREN'T ASSIGNED IN THE NEST RECORDS
         }
-      }
+        # first part:  look to see if this bird is in the global data or not
+        # (should always be there - if not, then there is a bug in the data...)
+        # - look at the last entry in the bird's data - to see what we know about
+        #   the bird from the last time we saw it (was it a nestling, a male, or a
+        #   female, what year was it)
         
-      # second part of the processing...look in band data for this year...
+        if (is.environment(hash_globalBirdData)) {
+          if (! exists(birdID, hash_globalBirdData)) {
+            #warning(year, "  found ", birdID, " in nest data - but no entry in global bird DB")
+            #The above warning will show up in all new birds because they won't
+            #have been added to the global bird hash until AFTER I run this
+            #function so it's not really useful
+            nestdata[[rtnStatusKey]][b] <- "New"
+          } else {
+            prev = tail(get(birdID, hash_globalBirdData), n = 1)[[1]]
+            if ("N" == prev[[2]]) {
+              # nestling...
+              if(!is.na(prev[[1]])){
+                nestdata[[rtnStatusKey]][b] <- ifelse(prev[[1]] == (year - 1),
+                                         "Recruit", 
+                                         paste("Slow Recruit from", year-as.integer(prev[[1]]) , "ago", sep=" "))
+              } else {
+                message("Bird", birdID, 
+                        "was a nestling last time they showed up but that was in an unknown year")
+              }
+            } else {
+              nestdata[[rtnStatusKey]][b] <- "Return"
+            }
+           
+            
+          }
+        }
+        
+        
+      }
+    }
+    return(nestdata)
+  }
+
+
+
+      
+      
+      
+AssignReturnStatus_fromBandData<-function(
+  nestdata,
+  hash_allbirds, # all the birds which appear in the band data
+  band){ # frame of band data)        
+  # second part of the processing...look in band data for this year...
+  for(birdID in as.character(nestdata[[birdIdKey]])){
+    if(!is.na(birdID)){
       if(!exists(birdID, hash_allbirds)){
         message(sex, birdID, " from ",  year, " not found in band record")
         next
@@ -122,9 +160,8 @@ AssignReturnStatus <-
           }#close else
           
         }#close recruit/return else
-      }    
-    } #close for
-    
-  }
-  return(nestdata)
+      } 
+    }
+  } #close for
+  
 }
