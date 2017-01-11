@@ -46,15 +46,20 @@ hash_adults<-new.env(hash=TRUE, parent=emptyenv())
 #' buildAllAdultHash
 #'This function fills in a hash table with all of the adult birds from a given
 #'year's nest data. It includes both males and females, and does not include NA.
-#'Therefore if an entry exists in this hash table it was in fact and adult bird
-#'from this year.
+#'Therefore if an entry exists in this hash table it was in fact an adult bird
+#'from this year. 
+#'The function requires that you tell it what hash you'd like to
+#'put the birds into--this will let you create a new hash for each year, or
+#'build for all years as you choose.
+#'
 #' @param nestdata The year in question's nest data file
+#' @param hash_adults The hash table you'd like to put the adults into.
 #'
 #' @return Returns a hash table that includes all adults found in this year. 
 #' @export
 #'
 #' @examples
-buildAllAdultHash<-function(nestdata){
+buildAllAdultHash<-function(nestdata, hash_adults){
 adultlocations<-c("FemaleID", "MaleID")
 
 for (location in adultlocations){
