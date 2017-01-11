@@ -19,46 +19,68 @@ AssignRenestStatus <- function (nestdata) {
       nestdata$renest.status[i] <- "First"
     } else {
       
-      
+      #If someone is NA....
       if (is.na(nestdata$FemaleID[i]) |
           is.na(nestdata$MaleID[i]) |
           is.na(nestdata$FemaleID[i - 1]) |
           is.na(nestdata$MaleID[i - 1])) {
+        #If everyone is NA then it is unknown whether it is a renest or not!
         if (is.na(nestdata$FemaleID[i]) &
             is.na(nestdata$MaleID[i]) &
             is.na(nestdata$FemaleID[i - 1]) &
             is.na(nestdata$MaleID[i - 1])) {
-          # not sure if this is a good idea...but, if everyone is unknown, then we
-          #  think you might be a renest...
-          nestdata$renest.status[i] <- "Possible Renest"
+          
+          nestdata$renest.status[i] <- "Unknown"
         } else {
-          if ((!(is.na(nestdata$FemaleID[i - 1]) |
-                 # first clause:  neither female is NA and they match
-                 is.na(nestdata$Female[i])) &
-               nestdata$FemaleID[i] == nestdata$FemaleID[i - 1]) |
-              (!(is.na(nestdata$MaleID[i - 1]) |
-                 # second clause:  neither male is NA and they match
-                 is.na(nestdata$MaleID[i])) &
-               nestdata$MaleID[i] == nestdata$MaleID[i - 1])) {
-            # might be a good idea to distinguish 'female renest' from 'male renest'
-            nestdata$renest.status[i] <- "Renest"
-          } else {
+          #Females match but the males have and NA
+          if ( !is.na(nestdata$FemaleID[i - 1]) & !is.na(nestdata$Female[i])) {
+            if(nestdata$FemaleID[i] == nestdata$FemaleID[i - 1]){
+              nestdata$renest.status[i] <- "Female Renest"
+            } else {
+              #Females don't match and the males are NA
+              nestdata$renest.status[i] <- "First"
+            }
+          }
+                
+          # Males match but the females have an NA
+          if ( !is.na(nestdata$MaleID[i]) & !is.na(nestdata$MaleID[i-1])){ 
+            if(nestdata$MaleID[i] == nestdata$MaleID[i - 1]){
+              nestdata$renest.status[i] <- "Male Renest"
+            } else {
+              nestdata$renest.status[i] <- "First"
+            }
+                
+          } 
+          #If there are diagonal NAs then it's a first nest
+          if( (!is.na(nestdata$MaleID[i]) | !is.na(nestdata$MaleID[i-1])) &
+              ( !is.na(nestdata$FemaleID[i - 1]) | !is.na(nestdata$Female[i])) ){
             nestdata$renest.status[i] <- "First"
           }
         }
       } else {
+        #Now no one is NA
+        #if all the individuals match then it's a total renest
         if (nestdata$FemaleID[i] == nestdata$FemaleID[i - 1] &
             nestdata$MaleID[i] == nestdata$MaleID[i - 1]) {
-          # this is not entirely consistent with the above...
-          #    e.g., if the female matches and the male is NA, then we declare 'Renest',
-          #    above.
-          #    however, here, if the female matches and the male doesn't match, then
-          #    we declare "first"
-          nestdata$renest.status[i] <- "Renest"
+          nestdata$renest.status[i] <- "All Renest"
         } else {
-          nestdata$renest.status[i] <- "First"
+          #If the females match and the males don't then it's a female renest
+          if((nestdata$FemaleID[i] == nestdata$FemaleID[i - 1] &
+              nestdata$MaleID[i] != nestdata$MaleID[i - 1]) ){
+            nestdata$renest.status[i] <- "Female Renest"
+          }
+          #If the males match and the females don't then it's a male renest
+          if((nestdata$FemaleID[i] != nestdata$FemaleID[i - 1] &
+              nestdata$MaleID[i] == nestdata$MaleID[i - 1]) ){
+            nestdata$renest.status[i] <- "Male Renest"
+          }
+          #If no one matches then it's a first nest
+          if((nestdata$FemaleID[i] != nestdata$FemaleID[i - 1] &
+              nestdata$MaleID[i] != nestdata$MaleID[i - 1]) ){
+            nestdata$renest.status[i] <- "First"
+          }
+          
         }
-        
       }
     }
   }
