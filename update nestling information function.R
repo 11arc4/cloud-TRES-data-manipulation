@@ -1,10 +1,33 @@
 
 #We need to make a hash of all the nestlings available in the banding data
 
+#' breakOnError
+#' Quick function to catch and error if R is being silly and won't let you put in a breakpoint. 
+#'
+#' @param errStr 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 breakOnError <- function(errStr) {
   message("caught an error ", errStr)
 }
 
+#' updatenestlings function
+#' A function that takes the band data and creates a hash of all the nestlings
+#' in the band data based on the nest they were from. Then all of the nests from
+#' the nest data (that don't have nestling bands already entered) are cross
+#' referenced with this banddata nestling hash to see if there are any nestlings
+#' from the given year that match with that nest. If there are, the nestlings'
+#' band numbers and body metrics are added to the dataframe.
+#' @param banddata The master band data list
+#' @param nestdata The nest data file from the year in question
+#'
+#' @return
+#' @export
+#'
+#' @examples
 updatenestlings <- function(banddata, nestdata) {
   hash_nestlings <-
     new.env(
