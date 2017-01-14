@@ -81,7 +81,7 @@ AssignReturnStatus_fromnestdata <-
 
 
       
-      
+
 
 AssertReturnStatus_fromBandData<-function(
   nestdata,
@@ -102,7 +102,7 @@ AssertReturnStatus_fromBandData<-function(
         if(!exists(birdID, hash_allbirds)){
           message(sex, birdID, " from ",  year, " not found in band record")
           next
-        }
+        } 
         if (is.na(nestdata$Year[b])) {
           warning("'Year' for entry ", fname, ":", b, 
                   " is not the right format (SKIPPING)")
@@ -130,7 +130,8 @@ AssertReturnStatus_fromBandData<-function(
             if(band$Age[bandIdxList[returnIdx]]=="L") {
               # bird is a nestling this year...maybe should add to global DB here?
               next
-            } else if (band$Year[c] >= nestdata$Year[b]) {
+            } else {
+              if (band$Year[c] >= nestdata$Year[b]) {
               # bird either appears in the band data for the first time this year (==)
               #  or bird doesn't appear this year but DOES appear again in the future (>)
               #  mark it as a new bird this year.
@@ -170,7 +171,8 @@ AssertReturnStatus_fromBandData<-function(
           }
           
         }
-      } 
+        
+      }
     }
   } 
   return (nestdata)
