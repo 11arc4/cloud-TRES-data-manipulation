@@ -15,7 +15,7 @@ NestData$methods(
   },
   configureFromNestDataFile = function(nestDataFrame, birdHash, line) {
     lineNumber <<- line
-    year <<- nestDataFrame$Year[line],
+    year <<- nestDataFrame$Year[line]
     
     #Here are the bird parents
     if (! is.na(nestData$femaleID[line]) ) {
@@ -23,15 +23,15 @@ NestData$methods(
       # find the female from its ID and enter it here
     }
     if (!is.na(nestDataFrame$maleID[line])){
-      male <<- nestDataFrame$maleID[line],
+      male <<- nestDataFrame$maleID[line]
     }
     
     #Need to add in a list of nestlings--create that before
-    nestlings = "list",  #Nestlings needs to be a list of tree swallow entries
+    nestlings <<- nestlingbandIDlist  #Nestlings needs to be made into a list and entered!
     
     #Here are all the important dates
     if (!is.na(nestDataFrame$First.Egg.Date[line])){
-      FirstEggDate <<- nestDataFrame$First.Egg.Date[line],
+      FirstEggDate <<- nestDataFrame$First.Egg.Date[line]
     }
     if(!is.na(nestDataFrame$Incubation.Date[line])){
       LastEggDate<<-nestDataFrame$Incubation.Date[line]
