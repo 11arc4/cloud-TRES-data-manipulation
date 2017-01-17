@@ -13,12 +13,15 @@ NestData$methods(
     
     #male$addNesting(.self)
   },
-  configureFromNestDataFile = function(nestDataFrame, birdHash, line) {
-    lineNumber <<- line
+  configureFromNestDataFile = function(nestDataFrame, line) {
+    #lineNumber <<- line 
+    #Could add in lineNumber reference but I don't think it's really necessary
+    #since we are now including all the dates and stuff
+    
     year <<- nestDataFrame$Year[line]
     
     #Here are the bird parents
-    if (! is.na(nestData$femaleID[line]) ) {
+    if (! is.na(nestDataFrame$femaleID[line]) ) {
      female <<- nestDataFrame$femaleID[line]
       # find the female from its ID and enter it here
     }
@@ -37,11 +40,11 @@ NestData$methods(
       LastEggDate<<-nestDataFrame$Incubation.Date[line]
     }
     
-    if(!is.na(nestdataframe$Hatch.Date[line])){
-      HatchDate <<- nestdataframe$Hatch.Date[line]
+    if(!is.na(nestDataFrame$Hatch.Date[line])){
+      HatchDate <<- nestDataFrame$Hatch.Date[line]
     }
-    if(!is.na(nestdataframe$Fledge.Fail.date[line])){
-      FledgeDate <<- nestdataframe$Fledge.Fail.date[line]
+    if(!is.na(nestDataFrame$Fledge.Fail.date[line])){
+      FledgeDate <<- nestDataFrame$Fledge.Fail.date[line]
     }
 
     #Breeding success measurements

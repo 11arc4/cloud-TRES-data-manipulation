@@ -25,7 +25,7 @@ NestData <- setRefClass("NestData",
 Observation <- setRefClass("Observation",
                            fields = list(
                              date = "Date",
-                             type = "char",
+                             type = "character",
                              bird = "TreeSwallow"
                            ))
 
@@ -43,7 +43,7 @@ BodyMeasurements <- setRefClass("BodyMeasurements",
 EggMass<-setRefClass("EggMass", 
                      contains="Observation", 
                      fields= list(
-                       EggMass - "numeric"
+                       EggMass = "numeric"
                      ))
 
 MalariaCheck <- setRefClass("MalariaCheck",
