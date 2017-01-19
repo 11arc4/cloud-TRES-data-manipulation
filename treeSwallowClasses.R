@@ -72,9 +72,9 @@ Nest <- setRefClass("Nest",
 
 
 Nest$methods ( 
-  initialize = function (year, siteID,  nestlings = list(), firstEggDate=NA, lastEggDate=NA,
-                         hatchDate=NA, fledgeDate=NA, clutchSize=NA_integer_, 
-                         hatchSize=NA_integer_, fledgeSize, reasonforFailure=NA_character_, 
+  initialize = function (year, siteID,  nestlings = list(), firstEggDate=NA_integer_, lastEggDate=NA_integer_,
+                         hatchDate=NA_integer_, fledgeDate=NA_integer_, clutchSize=NA_integer_, 
+                         hatchSize=NA_integer_, fledgeSize=NA_integer_, reasonforFailure=NA_character_, 
                          renestStatus=NA_character_ ){
     .self$year <<- year
     line <-lineNumber
@@ -117,7 +117,7 @@ TreeSwallow <- setRefClass("TreeSwallow",
 
 
 TreeSwallow$methods(
-  initialize = function(bandID, nestlingRecord=NA) {
+  initialize = function(bandID=NA_character_, nestlingRecord=NA) {
   
     .self$bandID <<- bandID
     if(!is.na(nestlingRecord)){
