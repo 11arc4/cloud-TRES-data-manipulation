@@ -7,7 +7,9 @@ nest_hash <- new.env(hash=TRUE, parent=emptyenv())
 
 
 BuildClassDataStructure <- function(nestdata){
-for (i in 1: length(nestdata$Year)){
+  year<- nestdata$Year[i]
+  
+  for (i in 1: length(nestdata$Year)){
   year<- nestdata$Year[i]
   nestID <- paste (year, nestdata$BoxID[i], sep="-")  #This is the unique 
   nest <- Nest(year=year, siteID=nestdata$siteID[i] )
@@ -75,7 +77,11 @@ for (i in 1: length(nestdata$Year)){
     nest$renestStatus <- as.character(nestdata$renest.status[i])
   } 
    
+#put the new nest into the hash
+  assign(x=nestID, value=nest, envir=nest_hash) 
+  
+}
+}
 
-  assign(x=nestID, value=nest, envir=nest_hash)    
-}
-}
+#as.list(nest_hash)
+#pulls out all the stuff in nest_hash (the actual stuff not just the names)
