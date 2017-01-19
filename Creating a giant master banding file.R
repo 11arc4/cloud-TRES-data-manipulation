@@ -2,8 +2,20 @@ inputdir<-"~/Masters Thesis Project/Tree Swallow Data/TRES data/Data Sets I real
 
 #Add 2002 banddata to master file
 banddata2002<-read.csv(paste(inputdir, "TRES bands 2002 (MaryS).csv", sep="/"), as.is=TRUE, na.strings = c("", "NA"))
-banddata2002$date<- as.character(as.Date( 
-  paste( "0", as.character(banddata2002$Month), as.character(banddata2002$Day) ,as.character(banddata2002$Year), sep=""), format=("%m%d%Y")))
+banddata2002$Day<-as.character(banddata2002$Day)
+banddata2002$Month <- as.character(banddata2002$Month)
+for( i in 1:length(banddata2002$Month)){
+  if(!is.na(banddata2002$Day[i]) & nchar(banddata2002$Day[i])<2){
+    banddata2002$Day[i]<-paste("0", as.character(banddata2002$Day[i]), sep="")
+  }
+  if(!is.na(banddata2002$Month[i]) & nchar(banddata2002$Month[i])<2){
+    banddata2002$Month[i]<-paste("0", as.character(banddata2002$Month[i]), sep="")
+  }
+ if(!is.na(banddata2002$Month[i]) & !is.na(banddata2002$Day[i]) & !is.na(banddata2002$Year[i])){
+  banddata2002$date[i]<- 
+  paste(as.character(banddata2002$Month[i]), as.character(banddata2002$Day[i]) ,as.character(banddata2002$Year[i]), sep="/")
+ }
+}
 for (i in 1:length(banddata2002$Year)){
   if(!is.na(banddata2002$Blood..ul.[i])){
     banddata2002$Blood[i]<- "YES"
@@ -100,6 +112,8 @@ banddata2003_adult<-read.csv(paste(inputdir, "2003_adults w more info.csv", sep=
 #adults first
 banddata2003_adult$Year<-c(rep(2003, length(banddata2003_adult$Box)))
 
+banddata2003_adult$Date<- format(as.Date(banddata2003_adult$Date, format="%d/%m/%Y"), "%m/%d/%Y")
+
 masterfile<-AddtoBandDataFile(inputfile =banddata2003_adult , 
                               band=masterfile, 
                               Species=NA,
@@ -129,7 +143,7 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2003_nest,
                               band=masterfile, 
                               Species=NA,
                               Year="Year",
-                              Date= "DATE",
+                              Date= "Date.2ndmeasure",
                               BoxID="LOCATION",
                               BandID="final.band.number",
                               Bander="BRD",
