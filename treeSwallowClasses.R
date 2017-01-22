@@ -37,6 +37,7 @@ GlobalBirdData <- setRefClass("GlobablBirdData",
                                 nestsByYear = "environment" # year -> vector of Nest
                               )
 )
+
 GlobalBirdData$methods(
   initialize = function() {
     birds <<- new.env(hash=TRUE, parent=emptyenv())  #this hash is only going to contain adult birds!
@@ -45,14 +46,14 @@ GlobalBirdData$methods(
     nestsByYear <<- new.env(hash=TRUE, parent=emptyenv())
   },
   findBird = function(bandID) {
-    get0(bandId, envir=birds, ifnotfound = NA)
+    get0(bandID, envir=birds, ifnotfound = NA)
   },
   findNest = function(nestID) {
     get0(nestID, envir = birds, ifnotfound = NA)
   },
   insertBird = function(bird) {
-    assert_that(is.na(findBird(bird$ID))) # this bird should not already be in the hash...
-    assign(bird$ID, bird, .self$birds)
+    assert_that(is.na(findBird(bird$bandID))) # this bird should not already be in the hash...
+    assign(bird$bandID, bird, .self$birds)
   },
   findNestling= function (nestlingCode){
     get0(nestlingCode, envir=nestlings, ifnotfound=NA)
@@ -61,10 +62,20 @@ GlobalBirdData$methods(
     assert_that(is.na( findNestling (nestling$nestlingCode))) # this bird should not already be in the hash...
     assign(nestling$nestlingCode, nestling, .self$nestlings) 
   },
-  buildNestID = function(year, boxId) {
-    paste(as.character(year), boxId, sep="-")
+  buildNestID = function(year, boxID) {
+    paste(as.character(year), boxID, sep="-")
+  }
+  
+  buildNest = function(nestdata, rownumber) {
+    for (idx in 1:12) {
+      nestlingKey = paste("nestling", as.character(idx), sep = ".")
+      if (! is.na(nestdata[[nestlingkey, rownumber]])) {
+        nestling = self.buildNestling(nestdata, idx, rownumber)
+      }
+    }
   }
 )
+
 
 globalData <- GlobalBirdData$new()
 
@@ -141,7 +152,7 @@ Nest$methods (
   addNestling= function (nestlingPointer){
     
     append(nestlingPointer, .self$nestlings)
-  }
+  },
   #' addDatesandSuccessNestdata
   #'Adds important breeding timing events to the a Reference class object if available. 
   #'Also adds measures of breeding success (eg clutch size, fledge size)
@@ -261,13 +272,10 @@ Nestling$methods(
     .self$nestlingCode <<- nestlingCode
     .self$nestID <<-nestID
     #.self$measurements <<- measurements
-  }
-)
-
-GlobalBirdData$methods(
+  }, 
   buildNestling = function(nestdata,
-                           chicknumber,
-                           rownumber) {
+                              chicknumber,
+                              rownumber) {
     nestID <-
       .self$buildNestID(year = nestdata$Year[1], boxID = nestdata$BoxID[rownumber])  #This is the unique
     nestlingCode <-
@@ -293,14 +301,6 @@ GlobalBirdData$methods(
         nestlingTRES=birdPtr)
     
     return(chick)
-  },
-  buildNest = function(nestdata, rownumber) {
-    for (idx in 1:12) {
-      nestlingKey = paste("nestling", as.character(idx), sep = ".")
-      if (! is.na(nestdata[[nestlingkey, rownumber]])) {
-        nestling = self.buildNestling(nestdata, idx, rownumber)
-      }
-    }
   }
 )
 
