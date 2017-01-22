@@ -1,68 +1,114 @@
+library(assertthat)
 
-
-
-NestPointer <- setRefClass("NestPointer", 
-                           fields= list(
-                             nest= "character",    #"year box ID" will be this nest 
-                             nest_hash="environment"
-                           )
-                            )
-NestPointer$methods(
-  initialize=function(nestID=NA_character_, nest_hash=emptyenv()){
-    .self$nest <<- nestID
-    .self$nest_hash <<- nest_hash
-  getnest = function() {
-    get(nest, nest_hash)
-  }
-    
+# a workaround to enable circular references in RC classes:
+#   - ultimately, the reference object will be put into an environment (hash table)
+#     so it can be looked up by name
+#   - the pointer may be NULL (not point to anything) - because we might not know
+#     the female bird ID is a nest, or might not know which nest a particular bird
+#     was hatched.
+#   - thus, we store the key in this structure.  If the pointer is NULL, then we
+#     store NA as the key.
+EnvPointer <- setRefClass("EnvPointer",
+                          fields = list(
+                            m_key = "character",
+                            m_hash = "environment"
+                          )
+)
+EnvPointer$methods(
+  initialize = function(id=NA_character_, hash=emptyenv()) {
+    .self$m_key <<- id
+    .self$m_hash <<- hash
+    assert_that( is.na(id) | ! identical(hash, emptyenv()))
+  },
+  isNull = function() {
+    is.na(m_key)
+  },
+  get = function() {
+    # return RC object which is pointed to or NA if pointer is NULL
+    ifelse(isNull(), NA, get(m_key, m_hash))
   }
 )
 
-#Use this class to make a method that returns tree swallow based on bandID 
+GlobalBirdData <- setRefClass("GlobablBirdData",
+                              fields = list(
+                                birds = "environment", # bandID -> TreeSwallow
+                                nests = "environment", # nestID -> Nest
+                                nestsByYear = "environment" # year -> vector of Nest
+                              )
+)
+GlobalBirdData$methods(
+  initialize = function() {
+    birds <<- new.env()
+    nests <<- new.env()
+    nestsByYear <<- new.env()
+  },
+  findBird = function(bandID) {
+    get0(bandId, envir=birds, ifnotfound = NA)
+  },
+  findNest = function(nestID) {
+    get0(nestID, envir = birds, ifnotfound = NA)
+  },
+  insertBird = function(bird) {
+    assert_that(is.na(findBird(bird$ID))) # this bird should not already be in the hash...
+    assign(bird$ID, bird, .self$birds)
+  },
+  buildNestID = function(year, boxId) {
+    paste(as.character(year), boxId, sep="-")
+  }
+)
+
+globalData <- GlobalBirdData$new()
+
+getGlobalSingleton <- function() {
+  globalData
+}
+
+#Use this class to make a method that returns tree swallow based on bandID
 
 Nest <- setRefClass("Nest",
-                        
-                        fields = list(
-                          
-                          year = "numeric",
-                          lineNumber = "numeric",
-                          siteID= "character",   
-                          #unique code for the nestID
-                          
-                          #we can't do the circular referencing like we'd like
-                          #to so we'll put it in as a character and use the
-                          #hash_table as an intermediary to find the band IDs
-                          maleID = "TreeSwallowPointer",
-                          femaleID = "TreeSwallowPointer",
-                          nestlings = "list",  
-                          #Nestlings needs to be a list of Nestlings, which will
-                          #get a TreeSwallow bandID reference if and only if
-                          #they turn into an adult tree swallow in our data.
-                          
-                          #Dates are all of class integer because they're all julian dates
-                          firstEggDate = "integer",
-                          lastEggDate="integer",
-                          hatchDate= "integer",
-                          fledgeDate= "integer",
-                          
-                          clutchSize= "integer",
-                          hatchSize= "integer",
-                          fledgeSize= "integer",
-                          reasonforFailure = "character", 
-                          renestStatus ="character")
-                        
+                    
+                    fields = list(
+                      year = "numeric",
+                      lineNumber = "numeric",
+                      siteID = "character",
+                      #unique code for the nestID
+                      
+                      #we can't do the circular referencing like we'd like
+                      #to so we'll put it in as a character and use the
+                      #hash_table as an intermediary to find the band IDs
+                      maleID = "EnvPointer",
+                      # to TreeSwallow
+                      femaleID = "EnvPointer", # TreeSwallow
+                      nestlings = "list",
+                      #Nestlings needs to be a list of Nestlings, which will
+                      #get a TreeSwallow bandID reference if and only if
+                      #they turn into an adult tree swallow in our data.
+                      
+                      #Dates are all of class integer because they're all julian dates
+                      firstEggDate = "integer",
+                      lastEggDate = "integer",
+                      hatchDate = "integer",
+                      fledgeDate = "integer",
+                      
+                      clutchSize = "integer",
+                      hatchSize = "integer",
+                      fledgeSize = "integer",
+                      reasonforFailure = "character",
+                      renestStatus = "character"
+                    )
+                    
 )
 
 
-Nest$methods ( 
+Nest$methods (
   initialize = function (year, siteID,  nestlings = list(), firstEggDate=NA_integer_, lastEggDate=NA_integer_,
-                         hatchDate=NA_integer_, fledgeDate=NA_integer_, clutchSize=NA_integer_, 
-                         hatchSize=NA_integer_, fledgeSize=NA_integer_, reasonforFailure=NA_character_, 
+                         hatchDate=NA_integer_, fledgeDate=NA_integer_, clutchSize=NA_integer_,
+                         hatchSize=NA_integer_, fledgeSize=NA_integer_, reasonforFailure=NA_character_,
                          renestStatus=NA_character_ ){
     .self$year <<- year
     line <-lineNumber
     .self$siteID <<- siteID
-    .self$nestlings <<-nestlings  
+    .self$nestlings <<-nestlings
     .self$firstEggDate <<- firstEggDate
     .self$lastEggDate <<- lastEggDate
     .self$hatchDate <<- hatchDate
@@ -70,55 +116,38 @@ Nest$methods (
     .self$clutchSize <<-clutchSize
     .self$hatchSize <<- hatchSize
     .self$fledgeSize <<-fledgeSize
-    .self$reasonforFailure <<- reasonforFailure 
+    .self$reasonforFailure <<- reasonforFailure
     .self$renestStatus <<- renestStatus
-  }, 
+  },
   addMale = function (malePointer){
+    
     maleID <<- malepointer
-  }, 
+  },
   addFemale = function (femalePointer){
     femaleID <<- femalePointer
   }
-  )
+) # end Nest$methods
 
 
 
-#########
-TreeSwallowPointer <- setRefClass("TreeSwallowPointer", 
-fields= list(
-  bandID = "character", 
-  bird_hash = "environment"
-  
-))
 
-#make sure that you always set the bird_hash--the function will not do what
-#you'd like to do if you use the empty environment default
-TreeSwallowPointer$methods(
-  initialize = function (bandID=NA_character_, bird_hash=emptyenv()){
-    .self$bandID <<- bandID
-    .self$bird_hash <<- bird_hash
-  }, 
-  getbird= function() {
-    get(bandID, bird_hash )
-  }
-)
 TreeSwallow <- setRefClass("TreeSwallow",
-                         fields = list(
-                            bandID = "character",
-                            sex = "character",
-                            hatchnest = "NestPointer", 
-                            # a pointer to the nest record from the nest where I hatched 
-                            nestList = "list", #(nestData, nestData)
-                            
-                            observations = "list") 
-                         #all of the things I know about an individual bird based on year
+                           fields = list(
+                             bandID = "character",
+                             sex = "character",
+                             hatchnest = "EnvPointer", # to Nest
+                             # a pointer to the nest record from the nest where I hatched
+                             nestList = "list", #(nestData, nestData)
+                             
+                             observations = "list")
+                           #all of the things I know about an individual bird based on year
 )
 
 TreeSwallow$methods(
-  initialize = function(bandID=NA_character_, 
-                        sex=NA_character_, nestList=list(), 
-                        hatchnest = NestPointer(nest="NA", nest_hash)) {
-  
+  initialize = function(bandID=NA_character_,
+                        sex=NA_character_, nestList=list(),
+                        hatchnest = EnvPointer()) {
+    
     .self$bandID <<- bandID
     .self$hatchnest <<- hatchnest
     .self$nestList <<- list()
@@ -133,75 +162,132 @@ TreeSwallow$methods(
     append(observations, obs)
   }
 )
-NestlingPointer <- setRefClass("NestlingPointer", fields= list(
-  nestlingCode= "character",
-  nestling_hash= "environment"
-))
-
-NestlingPointer$methods (
-  initialize= function( nestlingCode, nestling_hash) {
-    .self$nestlingCode <<- nestlingCode
-  .self$nestling_hash <<- nestling_hash
-  }
-)
 
 
-Nestling <- setRefClass("Nestling", 
+
+Nestling <- setRefClass("Nestling",
                         fields = list (
                           #measurements = "BodyMeasurements",
                           nestlingCode= "character",
-                          nestlingTRES = "TreeSwallowPointer", 
-                          fromNest = "NestPointer", 
-                          nestID="character"
-                        ))
+                          nestlingTRES = "EnvPointer", # to TreeSwallow
+                          # can point directly to nest - given the decl order
+                          #  or we could use a Pointer - to be consistent with all
+                          #  the rest of the classes
+                          fromNest = "EnvPointer",
+                          nestID="character" # don't need this, as we can get it from the nest
+                        ),
+                        methods = list(
+                          test = function(nestlingCode, nestlingTRES=EnvPointer("NA", bird_hash),
+                                          fromNest,  nestID, measurements=ls()){
+                            .self$fromNest <<- fromNest
+                            .self$nestlingCode <<- nestlingCode
+                            .self$nestID <<-nestID
+                            #.self$measurements <<- measurements
+                          }
+                        )
+)
 Nestling$methods(
-  initialize = function (nestlingCode,  nestlingTRES=TreeSwallowPointer("NA", bird_hash), fromNest,  nestID, measurements=ls()){
+  initialize = function (nestlingCode, nestlingTRES=EnvPointer("NA", bird_hash),
+                         fromNest,  nestID, measurements=ls()){
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
     .self$nestID <<-nestID
     #.self$measurements <<- measurements
   }
 )
-CreateNestlingFromNestData = function(nestdata, chicknumber, rownumber ){
-  nestID <- paste (as.character(nestdata$Year[1]), nestdata$BoxID[rownumber], sep="-")  #This is the unique 
-  nestlingCode <- paste( nestID, "nestling", as.character(chicknumber) )
-  band <- as.character(nestdata[rownumber, bandoptions[chicknumber]])
-  chickTRES <- TreeSwallow(bandID = band,  
-                           hatchnest= NestPointer(nestID=nestID, nest_hash)
-  )
-  
-  chick <- Nestling(fromNest=NestPointer(nestID=nestID, nest_hash), 
-                    nestlingCode=nestlingCode, 
-                    nestID=nestID, 
-                    nestlingTRES=chickTRES)
-  
-  return(chick)
-}
+
+GlobalBirdData$methods(
+  buildNestling = function(nestdata,
+                           chicknumber,
+                           rownumber) {
+    nestID <-
+      .self$buildNestID(year = nestdata$Year[1], boxID = nestdata$BoxID[rownumber])  #This is the unique
+    nestlingCode <-
+      paste(nestID, "nestling", as.character(chicknumber))
+    # check the nestdata to see if there is a bandID for this bird...
+    bandIdKey <- paste("band", as.character(chicknumber), sep = ".")
+    band <- nestdata[[bandIdKey, rownumber]]
+    if (!is.na(band)) {
+      # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
+      newBird = TreeSwallow(bandID = band,
+                            hatchnest = EnvPointer(id = nestID, hash = .self$nests))
+      dataSingleton$insertBird(newBird)
+    }
+    # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
+    birdPtr = EnvPointer(id = band, hash = .self$birds)
+    
+    
+    chick <-
+      Nestling(
+        fromNest = EnvPointer(nestID = nestID, has = .self$nests),
+        nestlingCode = nestlingCode,
+        nestID = nestID,
+        nestlingTRES=birdPtr)
+    
+    return(chick)
+  },
+  buildNest = function(nestdata, rownumber) {
+    for (idx in 1:12) {
+      nestlingKey = paste("nestling", as.character(idx), sep = ".")
+      if (! is.na(nestdata[[nestlingkey, rownumber]])) {
+        nestling = self.buildNestling(nestdata, idx, rownumber)
+      }
+    }
+  }
+)
 
 
-
-  ##########
+##########
 
 Observation <- setRefClass("Observation",
                            fields = list(
                              date = "Date",
                              type = "character",
-                             bird = "TreeSwallow"
-                           ))
+                             bird = "character" #"TreeSwallow"
+                           )
+)
+Observation$methods(
+  initialize = function(date, bird, type = NA_character_) {
+    init(date, bird, type)
+  },
+  initBase = function(date, bird, type) {
+    .self$date <<- date
+    .self$type <<- type
+    .self$bird <<- bird
+  },
+  equal = function(that) {
+    return (date == that$date &
+              type == that$type &
+              identical(bird, that$bird))
+  }
+  
+)
 
 
 
 BodyMeasurements <- setRefClass("BodyMeasurements",
-                                contains = "Observation",
+                                contains="Observation",
                                 fields = list (
                                   wingChord = "numeric",
                                   ninthPrimary = "numeric",
                                   mass = "numeric",
                                   tarsus = "numeric"
-                                ))
+                                )
+)
+BodyMeasurements$methods(
+  initialize = function (date, bird, wingChord = NA_real_, ninthPrimary = NA_real_,
+                         mass = NA_real_, tarsus = NA_real_) {
+    initBase(date, bird, "body")
+    .self$wingChord <<- wingChord
+    .self$ninthPrimary <<- ninthPrimary
+    .self$mass <<- mass
+    .self$tarsus <<- tarsus
+  }
+)
 
-EggMass<-setRefClass("EggMass", 
-                     contains="Observation", 
+
+EggMass<-setRefClass("EggMass",
+                     contains="Observation",
                      fields= list(
                        EggMass = "numeric"
                      ))
