@@ -32,15 +32,17 @@ EnvPointer$methods(
 GlobalBirdData <- setRefClass("GlobablBirdData",
                               fields = list(
                                 birds = "environment", # bandID -> TreeSwallow
+                                nestlings= "environment", #nestlingCode -> nest ->TreeSwallow
                                 nests = "environment", # nestID -> Nest
                                 nestsByYear = "environment" # year -> vector of Nest
                               )
 )
 GlobalBirdData$methods(
   initialize = function() {
-    birds <<- new.env()
-    nests <<- new.env()
-    nestsByYear <<- new.env()
+    birds <<- new.env(hash=TRUE, parent=emptyenv())  #this hash is only going to contain adult birds!
+    nestlings <<- new.env(hash=TRUE, parent=emptyenv())  #this hash is only going to contain nestlings!
+    nests <<- new.env(hash=TRUE, parent=emptyenv())
+    nestsByYear <<- new.env(hash=TRUE, parent=emptyenv())
   },
   findBird = function(bandID) {
     get0(bandId, envir=birds, ifnotfound = NA)
@@ -51,6 +53,13 @@ GlobalBirdData$methods(
   insertBird = function(bird) {
     assert_that(is.na(findBird(bird$ID))) # this bird should not already be in the hash...
     assign(bird$ID, bird, .self$birds)
+  },
+  findNestling= function (nestlingCode){
+    get0(nestlingCode, envir=nestlings, ifnotfound=NA)
+  },
+  insertNestling = function (nestling){
+    assert_that(is.na( findNestling (nestling$nestlingCode))) # this bird should not already be in the hash...
+    assign(nestling$nestlingCode, nestling, .self$nestlings) 
   },
   buildNestID = function(year, boxId) {
     paste(as.character(year), boxId, sep="-")
@@ -94,7 +103,10 @@ Nest <- setRefClass("Nest",
                       hatchSize = "integer",
                       fledgeSize = "integer",
                       reasonforFailure = "character",
-                      renestStatus = "character"
+                      renestStatus = "character", 
+                      
+                      eggMass= "list"
+                  
                     )
                     
 )
@@ -125,7 +137,63 @@ Nest$methods (
   },
   addFemale = function (femalePointer){
     femaleID <<- femalePointer
+  }, 
+  addNestling= function (nestlingPointer){
+    
+    append(nestlingPointer, .self$nestlings)
   }
+  #' addDatesandSuccessNestdata
+  #'Adds important breeding timing events to the a Reference class object if available. 
+  #'Also adds measures of breeding success (eg clutch size, fledge size)
+  #' @param nest The Nest object that we would like to add these pieces of information to. 
+  #' @param nestdata The nest data we are working from
+  #' @param i The rownumber within the nest data
+  #'
+  #' @return
+  #' @export
+  #'
+  #' @examples
+  addDatesandSuccessNestdata =function (nest, nestdata, i){  
+    #Here are all the important dates
+    if (!is.na(nestdata$First.Egg.Date[i])){
+      nest$firstEggDate <- nestdata$First.Egg.Date[i]
+    }
+    if(!is.na(nestdata$Incubation.Date[i])){
+      nest$lastEggDate <- nestdata$Incubation.Date[i]
+    }
+    
+    if(!is.na(nestdata$Hatch.Date[i])){
+      nest$hatchDate <- nestdata$Hatch.Date[i]
+    }
+    if(!is.na(nestdata$Fledge.Fail.date[i])){
+      nest$fledgeDate <- nestdata$Fledge.Fail.date[i]
+    }
+    
+    #Breeding success measurements
+    if(!is.na(nestdata$Clutch.Size[i])){
+      nest$clutchSize <- nestdata$Clutch.Size[i]
+    }
+    if(!is.na(nestdata$Hatch.Size[i])){
+      nest$hatchSize <- nestdata$Hatch.Size[i]
+    }
+    if(!is.na(nestdata$Fledge.Size[i])){
+      nest$fledgeSize <- nestdata$Fledge.Size[i]
+    }
+    if(!is.na(nestdata$Why.fail.[i])){
+      nest$reasonforFailure <- as.character(nestdata$Why.fail.[i])
+    }
+    if(!is.na(nestdata$renest.status[i])){
+      nest$renestStatus <- as.character(nestdata$renest.status[i])
+    }
+  }, 
+  addEggMass = function (Nest, eggmass){
+    if(exists(eggMass, nest)){
+      append(x=nest$eggMass, values = eggmass)
+    } else {
+      nest$eggMass <<- eggmass
+    }
+  }
+  
 ) # end Nest$methods
 
 
@@ -243,7 +311,7 @@ Observation <- setRefClass("Observation",
                            fields = list(
                              date = "Date",
                              type = "character",
-                             bird = "character" #"TreeSwallow"
+                             bird = "TreeSwallow"
                            )
 )
 Observation$methods(
@@ -277,7 +345,7 @@ BodyMeasurements <- setRefClass("BodyMeasurements",
 BodyMeasurements$methods(
   initialize = function (date, bird, wingChord = NA_real_, ninthPrimary = NA_real_,
                          mass = NA_real_, tarsus = NA_real_) {
-    initBase(date, bird, "body")
+    initBase(date, bird, "bodymeasurement")
     .self$wingChord <<- wingChord
     .self$ninthPrimary <<- ninthPrimary
     .self$mass <<- mass
@@ -286,14 +354,17 @@ BodyMeasurements$methods(
 )
 
 
-EggMass<-setRefClass("EggMass",
-                     contains="Observation",
-                     fields= list(
-                       EggMass = "numeric"
-                     ))
 
-MalariaCheck <- setRefClass("MalariaCheck",
-                            contains = "Observation",
-                            fields = list(
-                              status = "character"
-                            ))
+
+MalariaStatus <- setRefClass("MalariaStatus",
+                             contains = "Observation",
+                             fields = list(
+                               status = "character"
+                             ))
+MalariaStatus$methods (
+  initialize=function(date, bird, status){
+    initBase(date, bird, "MalariaStatus")
+    .self$status <<- status
+  }
+)
+
