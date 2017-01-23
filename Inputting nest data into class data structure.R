@@ -1,14 +1,21 @@
 outerdir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data/4 malaria status added"
 listfilenames <- list.files(outerdir)
-filename <- paste( outerdir, listfilenames[1], sep="/")
+filename <- paste( outerdir, listfilenames[15], sep="/")
 nestdata<- read.csv(filename, as.is=TRUE, na.strings=c("", "NA"))
 
+
+#Currently the dates are all in the wrong format and will need to be fixed before they can be used. 
+is.date()
+nestdata <- CleanUpNestDataObservationDates (nestdata)
 
 globalData <- GlobalBirdData()
 
 
 
 #Here I am going though the nest data. I will add all the nests, and all their observations
+
+
+
 
 year<- nestdata$Year[1]
 for (i in 1: length(nestdata$Year)){
@@ -121,5 +128,5 @@ for (i in 1: length(nestdata$Year)){
 }
 
 
-as.list(globalData$nests)
+#as.list(globalData$nests)
 #pulls out all the stuff in nest_hash (the actual stuff not just the names)
