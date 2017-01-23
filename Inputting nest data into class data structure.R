@@ -8,7 +8,7 @@ globalData <- GlobalBirdData()
 
 
 
-
+#Here I am going though the nest data. I will add all the nests, and all their observations
 
 year<- nestdata$Year[1]
 for (i in 1: length(nestdata$Year)){
@@ -20,11 +20,11 @@ for (i in 1: length(nestdata$Year)){
   if (! is.na(femaleID)) {
     
     # look for this bird is the globalData
-    bird <- globalData$findBird(femaleID)
-    if (is.na(bird)) {
+    if (!exists(femaleID, globalData$birds)) {
       # this is the first time we have seen this female...buid a TreeSwallow for it...
       bird <- TreeSwallow(bandID=femaleID, sex="F")
     } else {
+      bird <- globalData$findBird(femaleID)
       # we saw this one before...check that the sex is the same as the last time - or maybe this was a nestling
       #   and we didn't know the sex
       if ("F" != bird$sex()) {
@@ -32,6 +32,26 @@ for (i in 1: length(nestdata$Year)){
       }
     }
     bird$addNest(nest)
+    
+    #If this isn't NA, then we have SOME measurements, and need to add them as an observation
+    if(!is.na(nestdata$F.Day.measured[i])){
+      
+      
+      bodymetrics <- BodyMeasurements(date=nestdata$F.Day.measured[i], 
+                                      bird=bird, 
+                                      wingChord = nestdata$F.Wing..mm.[i], 
+                                      ninthPrimary = nestdata$F.Nineth.Primary..mm.[i],
+                                      mass = nestdata$F.Mass..g.[i], 
+                                      tarsus = nestdata$F.Tarsus..mm.[i])
+      bird$addObservation(bodymetrics)
+    }
+    if(!is.na(nestdata$F.Malaria.Status[i])){
+      malaria <- MalariaStatus(date=nestdata$F.blooddate[i], 
+                               bird=bird, 
+                               status=nestdata$F.Malaria.Status[i])
+      bird$addObservation(malaria)
+    }
+
     globalData$insertBird(bird)
     nest$femaleID <- EnvPointer(femaleID, globalData$birds)
   }
@@ -41,11 +61,12 @@ for (i in 1: length(nestdata$Year)){
   if (! is.na(maleID)) {
     
     # look for this bird is the globalData
-    bird <- globalData$findBird(maleID)
-    if (is.na(bird)) {
+    if (!exists(maleID, globalData$birds)) {
       # this is the first time we have seen this female...buid a TreeSwallow for it...
       bird <- TreeSwallow(bandID=maleID, sex="M")
     } else {
+      bird <- globalData$findBird(maleID)
+      
       # we saw this one before...check that the sex is the same as the last time - or maybe this was a nestling
       #   and we didn't know the sex
       if ("M" != bird$sex()) {
@@ -53,6 +74,24 @@ for (i in 1: length(nestdata$Year)){
       }
     }
     bird$addNest(nest)
+    if(!is.na(nestdata$M.Day.measured[i])){
+      
+      
+      bodymetrics <- BodyMeasurements(date=nestdata$M.Day.measured[i], 
+                                      bird=bird, 
+                                      wingChord = nestdata$M.Wing..mm.[i], 
+                                      ninthPrimary = nestdata$M.Nineth.Primary..mm.[i],
+                                      mass = nestdata$M.Mass..g.[i], 
+                                      tarsus = nestdata$M.Tarsus..mm.[i])
+      bird$addObservation(bodymetrics)
+      
+    }
+    if(!is.na(nestdata$M.Malaria.Status[i])){
+      malaria <- MalariaStatus(date=nestdata$M.blooddate[i], 
+                               bird=bird, 
+                               status=nestdata$M.Malaria.Status[i])
+      bird$addObservation(malaria)
+    }
     globalData$insertBird(bird)
     nest$maleID <- EnvPointer(maleID, globalData$birds)
     
@@ -66,15 +105,21 @@ for (i in 1: length(nestdata$Year)){
   
   #Need to make all the nestlings, and also need to add them to the data
   for (j in 1:10){
-    nestling<- globalData$buildNestling(nestdata=nestdata, chicknumber=j, rownumber=i)
-    nest$addNestling(EnvPointer(nestling, globalData$nestlings))
-    
+    #This creates the Nestling, and creates an associated TreeSwallow if applicable
+    nestling<- globalData$buildNestling(nestdata=nestdata, 
+                                        chicknumber=j, 
+                                        rownumber=i, 
+                                        dataSingleton = globalData)
+    #add the Nestling to the Nest
+    nest$addNestling(EnvPointer(nestling$nestlingCode, globalData$nestlings))
+    #add the Nestling to the nestlings hash
+    globalData$insertNestling(nestling)
     
   }
+  globalData$insertNest(nest)
 
-  
 }
 
 
-#as.list(nest_hash)
+as.list(globalData$nests)
 #pulls out all the stuff in nest_hash (the actual stuff not just the names)

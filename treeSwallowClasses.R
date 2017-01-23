@@ -59,12 +59,17 @@ GlobalBirdData$methods(
     get0(nestlingCode, envir=nestlings, ifnotfound=NA)
   },
   insertNestling = function (nestling){
-    assert_that(is.na( findNestling (nestling$nestlingCode))) # this bird should not already be in the hash...
+    assert_that( !exists(nestling$nestlingCode, envir= .self$nestlings))
     assign(nestling$nestlingCode, nestling, .self$nestlings) 
+   
   },
+  insertNest =function (Nest){
+    assert_that( !exists(Nest$siteID, envir= .self$nests))
+    assign(Nest$siteID, Nest, .self$nests) 
+  }, 
   buildNestID = function(year, boxID) {
     paste(as.character(year), boxID, sep="-")
-  }
+  },
   
   buildNest = function(nestdata, rownumber) {
     for (idx in 1:12) {
@@ -73,6 +78,35 @@ GlobalBirdData$methods(
         nestling = self.buildNestling(nestdata, idx, rownumber)
       }
     }
+  }, 
+  buildNestling = function(nestdata,
+                           chicknumber,
+                           rownumber, 
+                           dataSingleton) {
+    nestID <-
+      .self$buildNestID(year = nestdata$Year[1], boxID = nestdata$BoxID[rownumber])  #This is the unique
+    nestlingCode <-
+      paste(nestID, "nestling", as.character(chicknumber))
+    # check the nestdata to see if there is a bandID for this bird...
+    bandIdKey <- paste("band", as.character(chicknumber), sep = ".")
+    band <- as.character(nestdata[bandIdKey, rownumber])
+    if (!is.na(band)) {
+      # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
+      newBird = TreeSwallow(bandID = band,
+                            hatchnest = EnvPointer(id = nestID, hash = .self$nests))
+      dataSingleton$insertBird(newBird)
+    }
+    # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
+    birdPtr = EnvPointer(id = band, hash = .self$birds)
+    
+    
+    chick <-
+      Nestling(
+        fromNest = EnvPointer(id = nestID, hash = .self$nests),
+        nestlingCode = nestlingCode,
+        nestlingTRES=birdPtr)
+    
+    return(chick)
   }
 )
 
@@ -117,7 +151,7 @@ Nest <- setRefClass("Nest",
                       renestStatus = "character", 
                       
                       eggMass= "list"
-                  
+                      
                     )
                     
 )
@@ -149,9 +183,9 @@ Nest$methods (
   addFemale = function (femalePointer){
     femaleID <<- femalePointer
   }, 
-  addNestling= function (nestlingPointer){
+  addNestling= function ( nestlingPointer){
     
-    append(nestlingPointer, .self$nestlings)
+    .self$nestlings[[length(.self$nestlings)+1]] <-  nestlingPointer
   },
   #' addDatesandSuccessNestdata
   #'Adds important breeding timing events to the a Reference class object if available. 
@@ -197,11 +231,13 @@ Nest$methods (
       nest$renestStatus <- as.character(nestdata$renest.status[i])
     }
   }, 
-  addEggMass = function (Nest, eggmass){
-    if(exists(eggMass, nest)){
-      append(x=nest$eggMass, values = eggmass)
-    } else {
-      nest$eggMass <<- eggmass
+  addEggMass = function (Nest, mass){
+    if(!is.na(mass)){
+      if(exists(eggMass, Nest)){
+        append(x=Nest$eggMass, values = mass)
+      } else {
+        Nest$eggMass <- mass
+      }
     }
   }
   
@@ -252,8 +288,7 @@ Nestling <- setRefClass("Nestling",
                           # can point directly to nest - given the decl order
                           #  or we could use a Pointer - to be consistent with all
                           #  the rest of the classes
-                          fromNest = "EnvPointer",
-                          nestID="character" # don't need this, as we can get it from the nest
+                          fromNest = "EnvPointer"
                         ),
                         methods = list(
                           test = function(nestlingCode, nestlingTRES=EnvPointer("NA", bird_hash),
@@ -270,37 +305,7 @@ Nestling$methods(
                          fromNest,  nestID, measurements=ls()){
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
-    .self$nestID <<-nestID
     #.self$measurements <<- measurements
-  }, 
-  buildNestling = function(nestdata,
-                              chicknumber,
-                              rownumber) {
-    nestID <-
-      .self$buildNestID(year = nestdata$Year[1], boxID = nestdata$BoxID[rownumber])  #This is the unique
-    nestlingCode <-
-      paste(nestID, "nestling", as.character(chicknumber))
-    # check the nestdata to see if there is a bandID for this bird...
-    bandIdKey <- paste("band", as.character(chicknumber), sep = ".")
-    band <- nestdata[[bandIdKey, rownumber]]
-    if (!is.na(band)) {
-      # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
-      newBird = TreeSwallow(bandID = band,
-                            hatchnest = EnvPointer(id = nestID, hash = .self$nests))
-      dataSingleton$insertBird(newBird)
-    }
-    # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
-    birdPtr = EnvPointer(id = band, hash = .self$birds)
-    
-    
-    chick <-
-      Nestling(
-        fromNest = EnvPointer(nestID = nestID, has = .self$nests),
-        nestlingCode = nestlingCode,
-        nestID = nestID,
-        nestlingTRES=birdPtr)
-    
-    return(chick)
   }
 )
 
