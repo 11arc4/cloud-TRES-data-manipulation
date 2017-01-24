@@ -50,21 +50,21 @@ updateNestData <- function (nest_data, currentYear, bandDataTable) {
   #   names, that any columns that we expect to be fully specified, are (i.e., no
   #   NA values, no values out-of-range, etc)
 
-  for (i in 1:length(nest_data$BoxID)){
+  for (j in 1:length(nest_data$BoxID)){
     
     for (d in list(c("M", "MaleID"),
                    c("F", "FemaleID"))) {
       sex = d[1]
       key = d[2]
       
-      id <- nest_data[[key]][i]
+      id <- nest_data[[key]][j]
       if (! is.na(id)){
         k = as.character(id)
         if (exists(k, hashList[[sex]] )) {
           # append to list...
-          append(get(k, hashList[[sex]]), i)
+          append(get(k, hashList[[sex]]), j)
         } else {
-          assign(k, i, hashList[[sex]])
+          assign(k, j, hashList[[sex]])
         }
       }
     }
@@ -93,7 +93,7 @@ updateNestData <- function (nest_data, currentYear, bandDataTable) {
       next
     }
     
-    print(id)
+    #print(id)
     for (sex in c("M", "F")) {
       if (exists(id, hashList[[sex]])) {
         
@@ -105,6 +105,25 @@ updateNestData <- function (nest_data, currentYear, bandDataTable) {
               (nestDate > bandDate &
                bandDate > aprilEnd)) {
             # note that our new measured date is this one...
+            #need to put bandDate into date format
+            if ( is.na(bandDate)) {
+              bandDate <- NA
+            } else {
+              
+              if(nchar(bandDate)==6){
+                bandDate <- as.character(as.Date(as.character(bandDate), format= "%y%m%d"))
+              } else {
+                if (nchar(bandDate)==8){
+                  #problems occurring here
+                  bandDate <- as.character(as.Date(as.character(bandDate), format= "%Y%m%d"))
+                  
+                } else {
+                  bandDate <- NA
+                }
+              }
+            }
+            
+            
             nest_data[[mkey]][nestDataIdx] <- bandDate
             # update the measurements..
             for (d in substList[[sex]]) {
