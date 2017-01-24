@@ -23,7 +23,10 @@ fillinbandID<-function(nestdata, banddata){
   }
   #now we just have to go and see if that hash ccan help us find something useful! 
   #Female
-  nestdata$F.Day.measured<-as.Date(NA )
+  
+  if (!exists("F.Day.measured", nestdata)){
+    nestdata$F.Day.measured<-as.Date(NA )
+  }
   for (j in 1:length(nestdata$FemaleID)){
     if (is.na(nestdata$FemaleID[j])){
       NestSite <- nestdata$siteID[j]
@@ -70,7 +73,9 @@ fillinbandID<-function(nestdata, banddata){
     }
   }
   #Male
-  nestdata$M.Day.measured<-as.Date(NA)
+  if (!exists("M.Day.measured", nestdata)){
+    nestdata$M.Day.measured<-as.Date(NA)
+  }
   for (j in 1:length(nestdata$MaleID)){
     if (is.na(nestdata$MaleID[j])){
       NestSite <- nestdata$siteID[j]
