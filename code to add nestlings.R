@@ -31,6 +31,18 @@ if (!dir.exists(updatedResultDir)) {
 }
 
 
+updateNestings_directory <- function(sourcedir,
+                         resultdir ,
+                         bandDataTable ) {
+  listfiles <- list.files(sourcedir)
+  for (file in listfiles){
+    nestdata <- read.csv (paste (sourcedir, file, sep="/" ), as.is=TRUE, na.strings= c("NA", ""))
+    updatedNestData <- updateNestData(nest_data =  nestdata, currentYear = nestdata$Year[1], bandDataTable = bandDataTable)
+    filename = paste ("Nestdata with nestlings ", nestdata$Year[1], ".csv", sep="")
+    write.csv(updatedNestData, file=paste (resultdir, filename, sep="/"),  na="", row.names = FALSE)
+  }
+}
+
 updateNestings_directory(sourcedir = nestDataInDir,
                          resultdir = updatedResultDir,
-                         bandata = bandata) 
+                         bandDataTable = banddata) 
