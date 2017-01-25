@@ -141,7 +141,8 @@ updateNestData <- function (nest_data, currentYear, bandDataTable) {
   }
 
   if (0 != numUpdates){
-    print(sprintf("Updated %d entries", numUpdates))
-  }
+    message ( "Updated", numUpdates, "tree swallows body metrics")
+    #print(sprintf("Updated %d entries", numUpdates))
+  } 
   return(nest_data)
 }
