@@ -61,7 +61,7 @@ GlobalBirdData$methods(
   insertNestling = function (nestling){
     #assert_that( !exists(nestling$nestlingCode, envir= .self$nestlings))
     assign(nestling$nestlingCode, nestling, .self$nestlings) 
-   
+    
   },
   insertNest =function (Nest){
     #assert_that( !exists(Nest$siteID, envir= .self$nests))
@@ -90,39 +90,47 @@ GlobalBirdData$methods(
     # check the nestdata to see if there is a bandID for this bird...
     bandIdKey <- paste("band", as.character(chicknumber), sep = ".")
     if(exists(bandIdKey, nestdata)){
+
       band <- as.character(nestdata[bandIdKey, rownumber])
-      if (!is.na(band)) {
-        # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
-        newBird = TreeSwallow(bandID = band,
-                              hatchnest = EnvPointer(id = nestID, hash = .self$nests))
-        dataSingleton$insertBird(newBird)
+    #^this is throwing out null for band.1, rownumber 229. I don't understand why
+      if(is.null(band)){
+        message("Why is this band null? band=", band)
+      } else {
+        if (!is.na(band)) {
+          # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
+          #since it's a nestling you won't already have a TreeSwallow for this bird to go right ahead and make one
+          newBird = TreeSwallow(bandID = band,
+                                hatchnest = EnvPointer(id = nestID, hash = .self$nests))
+          dataSingleton$insertBird(newBird)
+          
+          # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
+          birdPtr = EnvPointer(id = band, hash = .self$birds)
+          
+          
+          chick <-
+            Nestling(
+              fromNest = EnvPointer(id = nestID, hash = .self$nests),
+              nestlingCode = nestlingCode,
+              nestlingTRES=birdPtr)
+          
+          return(chick)
+        } else {
+          chick <-
+            Nestling(
+              fromNest = EnvPointer(id = nestID, hash = .self$nests),
+              nestlingCode = nestlingCode
+            )
+          
+          return(chick) 
+        }
       }
-      # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
-      birdPtr = EnvPointer(id = band, hash = .self$birds)
-      
-      
-      chick <-
-        Nestling(
-          fromNest = EnvPointer(id = nestID, hash = .self$nests),
-          nestlingCode = nestlingCode,
-          nestlingTRES=birdPtr)
-      
-      return(chick)
-    } else {
-      chick <-
-        Nestling(
-          fromNest = EnvPointer(id = nestID, hash = .self$nests),
-          nestlingCode = nestlingCode
-          )
-      
-      return(chick) 
     }
-    }
-   
+  }
+  
 )
 
 
-globalData <- GlobalBirdData$new()
+globalData <- GlobalBirdData()
 
 getGlobalSingleton <- function() {
   globalData
@@ -301,7 +309,7 @@ Nestling <- setRefClass("Nestling",
                           fromNest = "EnvPointer"
                         ),
                         methods = list(
-                          test = function(nestlingCode, nestlingTRES=EnvPointer("NA", bird_hash),
+                          test = function(nestlingCode, nestlingTRES=EnvPointer("NA", globalData$birds),
                                           fromNest,  nestID, measurements=ls()){
                             .self$fromNest <<- fromNest
                             .self$nestlingCode <<- nestlingCode
@@ -311,7 +319,7 @@ Nestling <- setRefClass("Nestling",
 )
 
 Nestling$methods(
-  initialize = function (nestlingCode, nestlingTRES=EnvPointer("NA", bird_hash),
+  initialize = function (nestlingCode, nestlingTRES=EnvPointer("NA", globalData$birds),
                          fromNest) {
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
