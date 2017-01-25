@@ -17,7 +17,7 @@ for (fn in nestDataFiles) {
   #   - one or more non-digits ([^0-9]+)
   #   - one or more digits
   #   - ending in ".csv"
-  nameExp = "^[^0-9]+([0-9]+)+([^0-9]+)\\.csv$"
+  nameExp = "^[^0-9]+([0-9]+)\\.csv$"
   if (0 == length(grep(nameExp, fn))) {
     next
   }
