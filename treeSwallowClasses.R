@@ -52,19 +52,19 @@ GlobalBirdData$methods(
     get0(nestID, envir = birds, ifnotfound = NA)
   },
   insertBird = function(bird) {
-    assert_that(is.na(findBird(bird$bandID))) # this bird should not already be in the hash...
+    #assert_that(!exists(bird$bandID, envir= .self$birds)) # this bird should not already be in the hash...
     assign(bird$bandID, bird, .self$birds)
   },
   findNestling= function (nestlingCode){
     get0(nestlingCode, envir=nestlings, ifnotfound=NA)
   },
   insertNestling = function (nestling){
-    assert_that( !exists(nestling$nestlingCode, envir= .self$nestlings))
+    #assert_that( !exists(nestling$nestlingCode, envir= .self$nestlings))
     assign(nestling$nestlingCode, nestling, .self$nestlings) 
    
   },
   insertNest =function (Nest){
-    assert_that( !exists(Nest$siteID, envir= .self$nests))
+    #assert_that( !exists(Nest$siteID, envir= .self$nests))
     assign(Nest$siteID, Nest, .self$nests) 
   }, 
   buildNestID = function(year, boxID) {
@@ -89,25 +89,36 @@ GlobalBirdData$methods(
       paste(nestID, "nestling", as.character(chicknumber))
     # check the nestdata to see if there is a bandID for this bird...
     bandIdKey <- paste("band", as.character(chicknumber), sep = ".")
-    band <- as.character(nestdata[bandIdKey, rownumber])
-    if (!is.na(band)) {
-      # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
-      newBird = TreeSwallow(bandID = band,
-                            hatchnest = EnvPointer(id = nestID, hash = .self$nests))
-      dataSingleton$insertBird(newBird)
+    if(exists(bandIdKey, nestdata)){
+      band <- as.character(nestdata[bandIdKey, rownumber])
+      if (!is.na(band)) {
+        # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
+        newBird = TreeSwallow(bandID = band,
+                              hatchnest = EnvPointer(id = nestID, hash = .self$nests))
+        dataSingleton$insertBird(newBird)
+      }
+      # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
+      birdPtr = EnvPointer(id = band, hash = .self$birds)
+      
+      
+      chick <-
+        Nestling(
+          fromNest = EnvPointer(id = nestID, hash = .self$nests),
+          nestlingCode = nestlingCode,
+          nestlingTRES=birdPtr)
+      
+      return(chick)
+    } else {
+      chick <-
+        Nestling(
+          fromNest = EnvPointer(id = nestID, hash = .self$nests),
+          nestlingCode = nestlingCode
+          )
+      
+      return(chick) 
     }
-    # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
-    birdPtr = EnvPointer(id = band, hash = .self$birds)
-    
-    
-    chick <-
-      Nestling(
-        fromNest = EnvPointer(id = nestID, hash = .self$nests),
-        nestlingCode = nestlingCode,
-        nestlingTRES=birdPtr)
-    
-    return(chick)
-  }
+    }
+   
 )
 
 
@@ -279,10 +290,9 @@ TreeSwallow$methods(
 )
 
 
-
 Nestling <- setRefClass("Nestling",
                         fields = list (
-                          #measurements = "BodyMeasurements",
+                          measurements = "list",
                           nestlingCode= "character",
                           nestlingTRES = "EnvPointer", # to TreeSwallow
                           # can point directly to nest - given the decl order
@@ -295,17 +305,20 @@ Nestling <- setRefClass("Nestling",
                                           fromNest,  nestID, measurements=ls()){
                             .self$fromNest <<- fromNest
                             .self$nestlingCode <<- nestlingCode
-                            .self$nestID <<-nestID
-                            #.self$measurements <<- measurements
+                            .self$measurements <<- measurements
                           }
                         )
 )
+
 Nestling$methods(
   initialize = function (nestlingCode, nestlingTRES=EnvPointer("NA", bird_hash),
-                         fromNest,  nestID, measurements=ls()){
+                         fromNest) {
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
-    #.self$measurements <<- measurements
+    .self$nestlingTRES <<- nestlingTRES
+  }, 
+  addObservation = function( nestlingObs){
+    append(nestlingObs, .self$measurements)
   }
 )
 
@@ -314,7 +327,9 @@ Nestling$methods(
 
 Observation <- setRefClass("Observation",
                            fields = list(
-                             date = "Date",
+                             date = "character",
+                             #Dates are all characters now so I'll input them into the file structure as a
+                             #character--that seems to get distorted less anyway
                              type = "character",
                              bird = "TreeSwallow"
                            )
@@ -364,12 +379,36 @@ BodyMeasurements$methods(
 MalariaStatus <- setRefClass("MalariaStatus",
                              contains = "Observation",
                              fields = list(
-                               status = "character"
+                               status = "integer"
                              ))
 MalariaStatus$methods (
   initialize=function(date, bird, status){
     initBase(date, bird, "MalariaStatus")
     .self$status <<- status
+  }
+)
+#NestlingMeasurements point back to nestlings, not attach directly
+NestlingMeasurements <- setRefClass( "NestlingMeasurements", 
+                                     fields = list (
+                                       age = "numeric",
+                                       #nestling = "Nestling",
+                                       ninthPrimary = "numeric",
+                                       mass = "numeric",
+                                       tarsus = "numeric"
+                                     )
+)
+NestlingMeasurements$methods (
+  initialize = function (age=NA_real_, 
+                         #nestling, 
+                         ninthPrimary= NA_real_, 
+                         mass=NA_real_, 
+                         tarsus=NA_real_  
+  ){
+    .self$age <<- age
+    #.self$nestling <<- nestling
+    .self$ninthPrimary <<- ninthPrimary
+    .self$mass <<- mass
+    .self$tarsus <<- tarsus
   }
 )
 
