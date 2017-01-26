@@ -180,6 +180,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
               
             }
           }
+          
           #Want to add all the different measurements from that day together and
           #THEN check to see if there are any measurements made, and add it onto
           #the Nestling$measurements
@@ -199,6 +200,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           #add the Nestling to the nestlings hash
           globalData$insertNestling(nestling)
         }
+        
       }
     }
     globalData$insertNest(nest)
