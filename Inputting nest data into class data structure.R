@@ -169,17 +169,26 @@ for (i in 1: length(nestdata$Year)){
       
       for (day in 1:18){
         nestlingObs <- NestlingMeasurements(age=day)
+        h=0
         for (m in 1: length(n_measures)){
           measurement <- paste( n_measures[m], day, ".", j, sep="")
           if(exists( measurement, nestdata)){
             if (!is.na (nestdata[ i, measurement])){
-              nestlingObs[[N_obs[m]]]<- as.numeric(nestdata[ measurement, i])
-              nestling$addObservation(nestlingObs)
+              h=h+1
+              nestlingObs[[N_obs[m]]]<- as.numeric(nestdata[i,  measurement])
             } 
+            
           }
         }
+        #Want to add all the different measurements from that day together and
+        #THEN check to see if there are any measurements made, and add it onto
+        #the Nestling$measurements
+        if(h>0){
+        nestling$addObservation(nestlingObs)
+        }
+        
       }
-      if (is.na(nestling$nestlingTRES[["m_key"]]) | 
+      if ( nestling$nestlingTRES$isNull() | 
           length(nestling$measurements)==0) {
         #if the nstling wasn't banded and we know nothing about them
         next

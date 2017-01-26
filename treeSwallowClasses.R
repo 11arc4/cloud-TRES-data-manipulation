@@ -233,13 +233,13 @@ Nest$methods (
     
     #Breeding success measurements
     if(!is.na(nestdata$Clutch.Size[i])){
-      nest$clutchSize <- nestdata$Clutch.Size[i]
+      nest$clutchSize <- as.integer(nestdata$Clutch.Size[i])
     }
     if(!is.na(nestdata$Hatch.Size[i])){
-      nest$hatchSize <- nestdata$Hatch.Size[i]
+      nest$hatchSize <- as.integer(nestdata$Hatch.Size[i])
     }
     if(!is.na(nestdata$Fledge.Size[i])){
-      nest$fledgeSize <- nestdata$Fledge.Size[i]
+      nest$fledgeSize <- as.integer(nestdata$Fledge.Size[i])
     }
     if(!is.na(nestdata$Why.fail.[i])){
       nest$reasonforFailure <- as.character(nestdata$Why.fail.[i])
