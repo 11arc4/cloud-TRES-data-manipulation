@@ -46,17 +46,17 @@ GlobalBirdData$methods(
     nestsByYear <<- new.env(hash=TRUE, parent=emptyenv())
   },
   findBird = function(bandID) {
-    get0(bandID, envir=birds, ifnotfound = NA)
+    get0(bandID, envir=birds, ifnotfound = NULL)
   },
   findNest = function(nestID) {
-    get0(nestID, envir = birds, ifnotfound = NA)
-  },
+   get0(nestID, envir = birds, ifnotfound = NULL)
+ },
   insertBird = function(bird) {
     #assert_that(!exists(bird$bandID, envir= .self$birds)) # this bird should not already be in the hash...
     assign(bird$bandID, bird, .self$birds)
   },
   findNestling= function (nestlingCode){
-    get0(nestlingCode, envir=nestlings, ifnotfound=NA)
+    get0(nestlingCode, envir=nestlings, ifnotfound=NULL)
   },
   insertNestling = function (nestling){
     #assert_that( !exists(nestling$nestlingCode, envir= .self$nestlings))
@@ -91,11 +91,9 @@ GlobalBirdData$methods(
     bandIdKey <- paste("band", as.character(chicknumber), sep = ".")
     if(exists(bandIdKey, nestdata)){
 
-      band <- as.character(nestdata[bandIdKey, rownumber])
+      band <- as.character(nestdata[[bandIdKey]][rownumber])
     #^this is throwing out null for band.1, rownumber 229. I don't understand why
-      if(is.null(band)){
-        message("Why is this band null? band=", band)
-      } else {
+
         if (!is.na(band)) {
           # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
           #since it's a nestling you won't already have a TreeSwallow for this bird to go right ahead and make one
@@ -125,7 +123,7 @@ GlobalBirdData$methods(
         }
       }
     }
-  }
+
   
 )
 
@@ -309,24 +307,27 @@ Nestling <- setRefClass("Nestling",
                           fromNest = "EnvPointer"
                         ),
                         methods = list(
-                          test = function(nestlingCode, nestlingTRES=EnvPointer("NA", globalData$birds),
-                                          fromNest,  nestID, measurements=ls()){
+                          test = function(nestlingCode, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
+                                          fromNest,  nestID, measurements=list()){
                             .self$fromNest <<- fromNest
                             .self$nestlingCode <<- nestlingCode
-                            .self$measurements <<- measurements
+                            .self$measurements <<- list()
                           }
                         )
 )
 
 Nestling$methods(
-  initialize = function (nestlingCode, nestlingTRES=EnvPointer("NA", globalData$birds),
+  initialize = function (nestlingCode, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
                          fromNest) {
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
     .self$nestlingTRES <<- nestlingTRES
+    .self$measurements <<- list()
   }, 
   addObservation = function( nestlingObs){
-    append(nestlingObs, .self$measurements)
+    .self$measurements<- c(nestlingObs, .self$measurements)
+    #append(values=nestlingObs, x=measurements)
+    #print(.self$measurements)
   }
 )
 
