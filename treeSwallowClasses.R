@@ -281,6 +281,7 @@ TreeSwallow$methods(
                         hatchnest = EnvPointer()) {
     
     .self$bandID <<- bandID
+    .self$sex <<-sex
     .self$hatchnest <<- hatchnest
     .self$nestList <<- list()
     .self$observations <<- list()
@@ -317,7 +318,7 @@ Nestling <- setRefClass("Nestling",
 )
 
 Nestling$methods(
-  initialize = function (nestlingCode, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
+  initialize = function (nestlingCode=NA_character_, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
                          fromNest) {
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
