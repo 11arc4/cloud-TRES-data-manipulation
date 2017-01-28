@@ -1,6 +1,6 @@
 outerdir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data/4 malaria status added"
 listfilenames <- list.files(outerdir)
-filename <- paste( outerdir, listfilenames[16], sep="/")
+filename <- paste( outerdir, listfilenames[5], sep="/")
 nestdata<- read.csv(filename, as.is=TRUE, na.strings=c("", "NA"))
 
 
