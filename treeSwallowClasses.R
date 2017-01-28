@@ -63,9 +63,14 @@ GlobalBirdData$methods(
     assign(nestling$nestlingCode, nestling, .self$nestlings) 
     
   },
-  insertNest =function (Nest){
+#' insertNest
+#'
+#' @param nestID unique code for the nest example: "1976-BGA3"
+#' @param Nest 
+
+  insertNest =function (nestID, Nest){
     #assert_that( !exists(Nest$siteID, envir= .self$nests))
-    assign(Nest$siteID, Nest, .self$nests) 
+    assign(nestID, Nest, .self$nests) 
   }, 
   buildNestID = function(year, boxID) {
     paste(as.character(year), boxID, sep="-")
@@ -248,15 +253,11 @@ Nest$methods (
       nest$renestStatus <- as.character(nestdata$renest.status[i])
     }
   }, 
-  addEggMass = function (Nest, mass){
+  addEggMass = function ( mass){
     if(!is.na(mass)){
-      if(exists(eggMass, Nest)){
-        append(x=Nest$eggMass, values = mass)
-      } else {
-        Nest$eggMass <- mass
-      }
-    }
-  }
+        .self$eggMass<- c(mass, .self$eggMass)  
+        }
+}
   
 ) # end Nest$methods
 
@@ -288,11 +289,11 @@ TreeSwallow$methods(
   },
   #need a function to add a new nest to the TreeSwallow record
   addNest = function(nest) {
-    append(x=nestList, values=nest)
+    .self$nestList<- c(nest, .self$nestList)  
   },
   #Also need a function to add a new observation of the TreeSwallow
   addObservation = function(obs) {
-    append(observations, obs)
+    .self$observations<- c(obs, .self$observations) 
   }
 )
 
