@@ -255,7 +255,7 @@ Nest$methods (
   }, 
   addEggMass = function ( mass){
     if(!is.na(mass)){
-        .self$eggMass<- c(mass, .self$eggMass)  
+        .self$eggMass[[length(.self$eggMass)+1]] <- mass 
         }
 }
   
@@ -289,13 +289,14 @@ TreeSwallow$methods(
   },
   #need a function to add a new nest to the TreeSwallow record
   addNest = function(nest) {
-    .self$nestList<- c(nest, .self$nestList)  
+    .self$nestList[[length(.self$nestList)+1]] <- nest 
   },
   #Also need a function to add a new observation of the TreeSwallow
   addObservation = function(obs) {
-    .self$observations<- c(obs, .self$observations) 
+    .self$observations[[length(.self$observations)+1]] <- obs 
   }
 )
+
 
 
 Nestling <- setRefClass("Nestling",
@@ -327,7 +328,7 @@ Nestling$methods(
     .self$measurements <<- list()
   }, 
   addObservation = function( nestlingObs){
-    .self$measurements<- c(nestlingObs, .self$measurements)
+    .self$measurements[[length(.self$measurements)+1]] <- nestlingObs
     #append(values=nestlingObs, x=measurements)
     #print(.self$measurements)
   }
