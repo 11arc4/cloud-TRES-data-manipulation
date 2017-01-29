@@ -331,6 +331,44 @@ Nestling$methods(
     .self$measurements[[length(.self$measurements)+1]] <- nestlingObs
     #append(values=nestlingObs, x=measurements)
     #print(.self$measurements)
+  }, 
+  calcGrowthRate =function(){
+    
+    if(length(.self$measurements) < 2){
+      #If there aren't two measurements then growth rate is NA because we haven't got a baseline
+      return(NA)
+    } else {
+      for (obs in .self$measurements) {
+        day4 <- NestlingMeasurements(age=0)
+        day12 <- NestlingMeasurements (age=20)
+        if(!is.na(obs$mass)){
+          if(abs(obs$age - 4) <= abs (day4$age - 4) ){
+            if(abs(obs$age - 4) <abs (day4$age - 4) ) {
+              day4 <- obs
+            } else {
+              if ( obs$age > day4$age){
+                day4 <- obs
+              }
+            }
+          }
+          if (abs(obs$age-12) <= abs(day12$age-12)){
+            if(abs(obs$age-12)<abs(day12$age-12)){
+              day12 <- obs
+            } else {
+              #IF they're exually far away from 12 days old, then we want to use
+              #the younger chick because it will be  within the linear
+              #period of growth
+              if(obs$age < day12$age){
+                day12 <- obs
+                
+              }
+            }
+          } 
+        }
+      }
+      Massgrowth <- (day12$mass- day4$mass)/(day12$age - day4$age)
+    }
+    return(Massgrowth)
   }
 )
 
@@ -342,15 +380,15 @@ Observation <- setRefClass("Observation",
                              date = "character",
                              #Dates are all characters now so I'll input them into the file structure as a
                              #character--that seems to get distorted less anyway
-                             type = "character",
+                             type = "character", 
                              bird = "TreeSwallow"
                            )
 )
 Observation$methods(
   initialize = function(date, bird, type = NA_character_) {
-    init(date, bird, type)
+    init(date,  type, bird)
   },
-  initBase = function(date, bird, type) {
+  initBase = function(date, type, bird) {
     .self$date <<- date
     .self$type <<- type
     .self$bird <<- bird
@@ -377,7 +415,7 @@ BodyMeasurements <- setRefClass("BodyMeasurements",
 BodyMeasurements$methods(
   initialize = function (date, bird, wingChord = NA_real_, ninthPrimary = NA_real_,
                          mass = NA_real_, tarsus = NA_real_) {
-    initBase(date, bird, "bodymeasurement")
+    initBase(date,  "bodymeasurement", bird)
     .self$wingChord <<- wingChord
     .self$ninthPrimary <<- ninthPrimary
     .self$mass <<- mass
@@ -395,7 +433,7 @@ MalariaStatus <- setRefClass("MalariaStatus",
                              ))
 MalariaStatus$methods (
   initialize=function(date, bird, status){
-    initBase(date, bird, "MalariaStatus")
+    initBase(date,  "MalariaStatus", bird)
     .self$status <<- status
   }
 )
