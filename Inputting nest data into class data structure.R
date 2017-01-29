@@ -20,7 +20,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
   year<- nestdata$Year[1]
   for (i in 1: length(nestdata$Year)){
     nestID <- paste (as.character(year), nestdata$BoxID[i], sep="-")  #This is the unique
-    nest <- Nest(year=year, siteID=nestdata$siteID[i] )
+    nest <- Nest(year=year, siteID=as.character(nestdata$siteID[i]) )
     
     #Need to create (or append) sightings of the parents as TreeSwallows
     femaleID <- as.character(nestdata$FemaleID[i])
@@ -52,7 +52,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       if(!is.na(nestdata$F.Day.measured[i])){
         
         
-        bodymetrics <- BodyMeasurements(date=nestdata$F.Day.measured[i], 
+        bodymetrics <- BodyMeasurements(date=as.character(nestdata$F.Day.measured[i]), 
                                         bird=bird)
         
         if (!is.na(nestdata$F.Wing..mm.[i])){
@@ -72,7 +72,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         bird$addObservation(bodymetrics)
       }
       if(!is.na(nestdata$F.Malaria.Status[i])){
-        malaria <- MalariaStatus(date=nestdata$F.blooddate[i], 
+        malaria <- MalariaStatus(date=as.character(nestdata$F.blooddate[i]), 
                                  bird=bird, 
                                  status=nestdata$F.Malaria.Status[i])
         bird$addObservation(malaria)
@@ -109,7 +109,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       if(!is.na(nestdata$M.Day.measured[i])){
         
         
-        bodymetrics <- BodyMeasurements(date=nestdata$M.Day.measured[i], 
+        bodymetrics <- BodyMeasurements(date=as.character(nestdata$M.Day.measured[i]), 
                                         bird=bird)
         
         if (!is.na(nestdata$M.Wing..mm.[i])){
@@ -130,7 +130,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         
       }
       if(!is.na(nestdata$M.Malaria.Status[i])){
-        malaria <- MalariaStatus(date=nestdata$M.blooddate[i], 
+        malaria <- MalariaStatus(date=as.character(nestdata$M.blooddate[i]), 
                                  bird=bird, 
                                  status=nestdata$M.Malaria.Status[i])
         bird$addObservation(malaria)
