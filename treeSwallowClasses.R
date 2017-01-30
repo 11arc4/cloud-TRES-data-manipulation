@@ -272,7 +272,8 @@ TreeSwallow <- setRefClass("TreeSwallow",
                              # a pointer to the nest record from the nest where I hatched
                              nestList = "list", #(nestData, nestData)
                              
-                             observations = "list")
+                             observations = "list", 
+                             yearsSeen= "list")
                            #all of the things I know about an individual bird based on year
 )
 
@@ -297,7 +298,43 @@ TreeSwallow$methods(
   }
 )
 
+YearsSeen <- setRefClass("YearsSeen", 
+                         contains= "TreeSwallow", 
+                         fields= list(
+                           year= "numeric", 
+                           age= "character",
+                           returnStatus = "character", 
+                           hatchNest = "EnvPointer", 
+                           nest = "EnvPointer", 
+                           observations= "list"
+                         )
+)
 
+YearsSeen$methods (
+  initialize= function (year, 
+             age=NA_character_, 
+             returnstatus=NA_character_, 
+             hatchNest=EnvPointer(NA_character_, globalData$nests),
+             nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
+             observations = list()
+             ){
+    .self$year <<- year
+    .self$age <<- age
+    .self$returnStatus <<- returnStatus
+    .self$hatchNest <<- hatchNest
+    .self$nest <<- nest
+    .self$observations <<- observations
+    
+  }, 
+  addNest = function (nest){
+    .self$nest[[length(.self$nest)+1]] <- nest
+    
+  }, 
+  addObservation = function (obs){
+    .self$observations[[length(.self$observations)+1]] <- obs
+    
+  }
+)
 
 Nestling <- setRefClass("Nestling",
                         fields = list (
@@ -307,7 +344,8 @@ Nestling <- setRefClass("Nestling",
                           # can point directly to nest - given the decl order
                           #  or we could use a Pointer - to be consistent with all
                           #  the rest of the classes
-                          fromNest = "EnvPointer"
+                          fromNest = "EnvPointer", 
+                          growthRateMass = "numeric"
                         ),
                         methods = list(
                           test = function(nestlingCode, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
@@ -321,11 +359,12 @@ Nestling <- setRefClass("Nestling",
 
 Nestling$methods(
   initialize = function (nestlingCode=NA_character_, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
-                         fromNest) {
+                         fromNest, growthRateMass = NA_real_) {
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
     .self$nestlingTRES <<- nestlingTRES
     .self$measurements <<- list()
+    .self$growthRateMass <<- growthRateMass
   }, 
   addObservation = function( nestlingObs){
     .self$measurements[[length(.self$measurements)+1]] <- nestlingObs
@@ -338,14 +377,19 @@ Nestling$methods(
       #If there aren't two measurements then growth rate is NA because we haven't got a baseline
       return(NA)
     } else {
+      day4 <- NestlingMeasurements(age=0)
+      day12 <- NestlingMeasurements (age=20)
       for (obs in .self$measurements) {
-        day4 <- NestlingMeasurements(age=0)
-        day12 <- NestlingMeasurements (age=20)
+        
         if(!is.na(obs$mass)){
           if(abs(obs$age - 4) <= abs (day4$age - 4) ){
+            #when the observation's age closer to 4 days, then we want to take this observation
             if(abs(obs$age - 4) <abs (day4$age - 4) ) {
               day4 <- obs
             } else {
+              #when the observations's age is equally far away from day 4, but
+              #the age is larger, then we also want to take this observation
+              #preferentially
               if ( obs$age > day4$age){
                 day4 <- obs
               }
@@ -367,8 +411,12 @@ Nestling$methods(
         }
       }
       Massgrowth <- (day12$mass- day4$mass)/(day12$age - day4$age)
+      message ( "growthrate calculated from",day4$age, "to",  day12$age, sep=" ")
     }
     return(Massgrowth)
+  }, 
+  addGrowthRateMass =function(growthRate ){
+    .self$growthRateMass <- growthRate
   }
 )
 
