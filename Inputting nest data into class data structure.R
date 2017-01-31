@@ -34,7 +34,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         
       } else {
         bird <- globalData$findBird(femaleID)
-        # we saw this one before...check that the sex is the same as the last time - or maybe this was a nestling
+        # we saw this one before...check that the sex is the same as the last
+        # time - or maybe this was a nestling
         #   and we didn't know the sex
         if (length(bird$sex)==0 | is.na(bird$sex)){
           bird$sex <- "F"

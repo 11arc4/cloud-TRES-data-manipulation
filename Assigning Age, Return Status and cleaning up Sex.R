@@ -18,6 +18,8 @@ for (bird in AllBirds){
       if (is.na (year$hatchNest$m_key)){
         year$returnStatus <- "New"
         #year age stays the same!
+        
+        #QUick fixes to check to see that everyone is consistent about how they write ages
         if( year$age=="2Y") {
           year$age <- "SY"
         }

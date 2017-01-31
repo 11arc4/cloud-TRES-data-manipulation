@@ -293,6 +293,7 @@ TreeSwallow$methods(
     .self$hatchnest <<- hatchnest
     .self$nestList <<- list()
     .self$observations <<- list()
+    .self$yearsSeen <<- list()
   },
   #need a function to add a new nest to the TreeSwallow record
   addNest = function(nest) {
@@ -331,8 +332,8 @@ YearsSeen$methods (
     .self$age <<- age
     .self$returnStatus <<- returnStatus
     .self$hatchNest <<- hatchNest
-    .self$nest <<- nest
-    .self$observations <<- observations
+    .self$nest <<- list()
+    .self$observations <<- list()
     
   }, 
   addNest = function (nest){
