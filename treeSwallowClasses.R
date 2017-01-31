@@ -102,8 +102,14 @@ GlobalBirdData$methods(
         if (!is.na(band)) {
           # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
           #since it's a nestling you won't already have a TreeSwallow for this bird to go right ahead and make one
+
+          
           newBird = TreeSwallow(bandID = band,
                                 hatchnest = EnvPointer(id = nestID, hash = .self$nests))
+          year <- YearsSeen(year=nestdata$Year[rownumber], 
+                            hatchNest = EnvPointer(id = nestID, hash = .self$nests))
+          newBird$addYearSeen(year)
+          
           dataSingleton$insertBird(newBird)
           
           # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
@@ -295,6 +301,9 @@ TreeSwallow$methods(
   #Also need a function to add a new observation of the TreeSwallow
   addObservation = function(obs) {
     .self$observations[[length(.self$observations)+1]] <- obs 
+  }, 
+  addYearSeen = function (yearSeen) {
+    .self$yearsSeen[[length(.self$yearsSeen)+1]] <- yearSeen
   }
 )
 
@@ -305,7 +314,7 @@ YearsSeen <- setRefClass("YearsSeen",
                            age= "character",
                            returnStatus = "character", 
                            hatchNest = "EnvPointer", 
-                           nest = "EnvPointer", 
+                           nest = "list", 
                            observations= "list"
                          )
 )
