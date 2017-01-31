@@ -48,6 +48,15 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       
       bird$addNest(nest)
       
+      yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
+                             age= as.character (nestdata$F.Age[i]), 
+                             returnstatus=NA_character_, 
+                             hatchNest=EnvPointer(NA_character_, globalData$nests),
+                             nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
+                             observations = list()
+      )
+      yearentry$addNest (EnvPointer(nestID, globalData$nests))
+      
       #If this isn't NA, then we have SOME measurements, and need to add them as an observation
       if(!is.na(nestdata$F.Day.measured[i])){
         
@@ -70,16 +79,25 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         }
         
         bird$addObservation(bodymetrics)
+        yearentry$addObservation(bodymetrics)
+        
       }
       if(!is.na(nestdata$F.Malaria.Status[i])){
         malaria <- MalariaStatus(date=as.character(nestdata$F.blooddate[i]), 
                                  bird=bird, 
                                  status=nestdata$F.Malaria.Status[i])
         bird$addObservation(malaria)
+        yearentry$addObservation (malaria)
+        
       }
       
       nest$femaleID <- EnvPointer(femaleID, globalData$birds)
+      bird$addYearSeen(yearentry)
+      
     }
+    
+    
+    
     
     maleID <- as.character(nestdata$MaleID[i])
     
@@ -106,6 +124,14 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         }
       }
       bird$addNest(nest)
+      yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
+                             age=as.character (nestdata$F.Age[i]), 
+                             returnstatus=NA_character_, 
+                             hatchNest=EnvPointer(NA_character_, globalData$nests),
+                             nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
+                             observations = list()
+      )
+      yearentry$addNest (EnvPointer(nestID, globalData$nests))
       if(!is.na(nestdata$M.Day.measured[i])){
         
         
@@ -127,6 +153,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         }
         
         bird$addObservation(bodymetrics)
+        yearentry$addObservation (bodymetrics)
+        
         
       }
       if(!is.na(nestdata$M.Malaria.Status[i])){
@@ -134,11 +162,13 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
                                  bird=bird, 
                                  status=nestdata$M.Malaria.Status[i])
         bird$addObservation(malaria)
+        yearentry$addObservation (malaria)
+        
       }
       nest$maleID <- EnvPointer(maleID, globalData$birds)
+      bird$addYearSeen(yearentry)
       
     }
-    
     # call a method on the nest to populate the rest of the data
     #nest$populateMesaurements(nestdata, rownumber)
     
