@@ -105,9 +105,9 @@ GlobalBirdData$methods(
 
           
           newBird = TreeSwallow(bandID = band,
-                                hatchnest = EnvPointer(id = nestID, hash = .self$nests))
+                                hatchnest = EnvPointer(id = nestID, hash = dataSingleton$nests))
           year <- YearsSeen(year=nestdata$Year[rownumber], 
-                            hatchNest = EnvPointer(id = nestID, hash = .self$nests))
+                            hatchNest = EnvPointer(id = nestID, hash = dataSingleton$nests))
           newBird$addYearSeen(year)
           
           dataSingleton$insertBird(newBird)

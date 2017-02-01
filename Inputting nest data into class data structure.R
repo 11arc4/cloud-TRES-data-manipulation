@@ -51,6 +51,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       
       yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
                              age= as.character (nestdata$F.Age[i]), 
+                             sex= "F", 
                              returnstatus=NA_character_, 
                              hatchNest=EnvPointer(NA_character_, globalData$nests),
                              nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
@@ -126,7 +127,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       }
       bird$addNest(nest)
       yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
-                             age=as.character (nestdata$F.Age[i]), 
+                             age=as.character (nestdata$M.Age[i]), 
+                             sex= "M", 
                              returnstatus=NA_character_, 
                              hatchNest=EnvPointer(NA_character_, globalData$nests),
                              nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
