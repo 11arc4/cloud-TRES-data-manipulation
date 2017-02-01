@@ -107,7 +107,9 @@ GlobalBirdData$methods(
           newBird = TreeSwallow(bandID = band,
                                 hatchnest = EnvPointer(id = nestID, hash = dataSingleton$nests))
           year <- YearsSeen(year=nestdata$Year[rownumber], 
-                            hatchNest = EnvPointer(id = nestID, hash = dataSingleton$nests))
+                            hatchNest = EnvPointer(id = nestID, hash = dataSingleton$nests), 
+                            sex= "U", 
+                            age= "HY")
           newBird$addYearSeen(year)
           
           dataSingleton$insertBird(newBird)
@@ -313,6 +315,7 @@ YearsSeen <- setRefClass("YearsSeen",
                          fields= list(
                            year= "numeric", 
                            age= "character",
+                           sex = "character", 
                            returnStatus = "character", 
                            hatchNest = "EnvPointer", 
                            nest = "list", 
@@ -323,6 +326,7 @@ YearsSeen <- setRefClass("YearsSeen",
 YearsSeen$methods (
   initialize= function (year, 
              age=NA_character_, 
+             sex= NA_character_,
              returnstatus=NA_character_, 
              hatchNest=EnvPointer(NA_character_, globalData$nests),
              nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
@@ -330,6 +334,7 @@ YearsSeen$methods (
              ){
     .self$year <<- year
     .self$age <<- age
+    .self$sex <<- sex
     .self$returnStatus <<- returnStatus
     .self$hatchNest <<- hatchNest
     .self$nest <<- list()

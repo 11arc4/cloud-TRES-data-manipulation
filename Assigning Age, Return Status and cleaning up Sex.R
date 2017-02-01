@@ -10,9 +10,12 @@ for (bird in AllBirds){
   #that list and it will all be wonderfully sorted and I will have an easy way
   #to assign return and age)
   bird$yearsSeen <- bird$yearsSeen[order(sapply(bird$yearsSeen,function(x) x$year ))]
+  create a vector of sexes 
+  sexes <- vector(mode = "character")
   #not sure if I need to reinput them all (may just do this automatically because RC is mutable)
   t=0
   for (year in bird$yearsSeen){
+    sexes[length(sexes)+1] <- year$sex
     t=t+1
     if (t==1){
       if (is.na (year$hatchNest$m_key)){
@@ -59,4 +62,9 @@ for (bird in AllBirds){
     #Setting this iteration to be the previous year's info for the next iteration
     prev <- year
   }
+  
+  
 }
+
+
+
