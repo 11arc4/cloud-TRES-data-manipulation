@@ -47,7 +47,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         }
       }
       
-      bird$addNest(nest)
+      #bird$addNest(nest)
       
       yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
                              age= as.character (nestdata$F.Age[i]), 
@@ -79,7 +79,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           
         }
         
-        bird$addObservation(bodymetrics)
+        #bird$addObservation(bodymetrics)
         yearentry$addObservation(bodymetrics)
         
       }
@@ -124,7 +124,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           }
         }
       }
-      bird$addNest(nest)
+      #bird$addNest(nest)
       yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
                              age=as.character (nestdata$M.Age[i]), 
                              sex= "M", 
@@ -152,7 +152,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           
         }
         
-        bird$addObservation(bodymetrics)
+       # bird$addObservation(bodymetrics)
         yearentry$addObservation (bodymetrics)
         
         

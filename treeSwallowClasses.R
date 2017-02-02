@@ -358,9 +358,9 @@ TreeSwallow <- setRefClass("TreeSwallow",
                              sex = "character",
                              hatchnest = "EnvPointer", # to Nest
                              # a pointer to the nest record from the nest where I hatched
-                             nestList = "useableList", #(nestData, nestData)
+                             #nestList = "useableList", #(nestData, nestData)
                              
-                             observations = "useableList" , 
+                             #observations = "useableList" , 
                              yearsSeen= "useableList"
                              )
                            #all of the things I know about an individual bird based on year
@@ -370,16 +370,16 @@ TreeSwallow$methods(
   initialize = function(bandID=NA_character_,
                         sex=NA_character_, 
                         hatchnest = EnvPointer(),
-                        nestList=useableList(4),
-                        observations = useableList (4), 
+                        #nestList=useableList(4),
+                        #observations = useableList (4), 
                         yearSeen =useableList (4)
                         ) {
     
     .self$bandID <<- bandID
     .self$sex <<-sex
     .self$hatchnest <<- hatchnest
-    .self$nestList <<- nestList
-    .self$observations <<- observations
+    #.self$nestList <<- nestList
+    #.self$observations <<- observations
     .self$yearsSeen <<- yearSeen
   },
   #need a function to add a new nest to the TreeSwallow record
