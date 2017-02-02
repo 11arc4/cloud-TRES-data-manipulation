@@ -1,5 +1,46 @@
 library(assertthat)
 
+
+
+
+#idea of an expanding list object is modified from JanKanis's function on
+#stackoverflow which allows us to properly add in a new list
+# http://stackoverflow.com/questions/2436688/append-an-object-to-a-list-in-r-in-amortized-constant-time-o1
+useableList <-  setRefClass("useableList", 
+                            fields= list (
+                              buffer = "list", 
+                              length = "numeric",  #the length of elements in the structure that you really care about
+                              capacity = "numeric"
+                            ))
+
+useableList$methods (
+  initialize = function (capacity= 15){
+    .self$capacity <<- capacity
+    .self$buffer <<- vector('list', capacity) #making a list of length "capactity"
+    .self$length <<- 0
+    
+  }, 
+  double.size = function() {
+    .self$buffer <- c(.self$buffer, vector('list', .self$capacity))
+    .self$capacity <- .self$capacity * 2
+  }, 
+  addElement = function (element){
+    if(.self$length == .self$capacity) {
+      methods$double.size()
+    }
+    
+    .self$length <- .self$length + 1
+    buffer[[.self$length]] <<- element
+  }, 
+  as.list = function() {
+    b <- buffer[0: .self$length]
+    return(b)
+  }
+  
+)
+
+
+
 # a workaround to enable circular references in RC classes:
 #   - ultimately, the reference object will be put into an environment (hash table)
 #     so it can be looked up by name
@@ -153,7 +194,6 @@ Nest <- setRefClass("Nest",
                     
                     fields = list(
                       year = "numeric",
-                      lineNumber = "numeric",
                       siteID = "character",
                       #unique code for the nestID
                       
@@ -163,7 +203,7 @@ Nest <- setRefClass("Nest",
                       maleID = "EnvPointer",
                       # to TreeSwallow
                       femaleID = "EnvPointer", # TreeSwallow
-                      nestlings = "list",
+                      nestlings = "useableList",
                       #Nestlings needs to be a list of Nestlings, which will
                       #get a TreeSwallow bandID reference if and only if
                       #they turn into an adult tree swallow in our data.
@@ -180,7 +220,7 @@ Nest <- setRefClass("Nest",
                       reasonforFailure = "character",
                       renestStatus = "character", 
                       
-                      eggMass= "list"
+                      eggMass= "useableList"
                       
                     )
                     
@@ -188,12 +228,11 @@ Nest <- setRefClass("Nest",
 
 
 Nest$methods (
-  initialize = function (year, siteID,  nestlings = list(), firstEggDate=NA_integer_, lastEggDate=NA_integer_,
+  initialize = function (year, siteID,  nestlings = useableList(8), firstEggDate=NA_integer_, lastEggDate=NA_integer_,
                          hatchDate=NA_integer_, fledgeDate=NA_integer_, clutchSize=NA_integer_,
                          hatchSize=NA_integer_, fledgeSize=NA_integer_, reasonforFailure=NA_character_,
-                         renestStatus=NA_character_ ){
+                         renestStatus=NA_character_ , eggMass = useableList(8)){
     .self$year <<- year
-    line <-lineNumber
     .self$siteID <<- siteID
     .self$nestlings <<-nestlings
     .self$firstEggDate <<- firstEggDate
@@ -205,6 +244,7 @@ Nest$methods (
     .self$fledgeSize <<-fledgeSize
     .self$reasonforFailure <<- reasonforFailure
     .self$renestStatus <<- renestStatus
+    .self$eggMass <<- eggMass
   },
   addMale = function (malePointer){
     
@@ -215,7 +255,7 @@ Nest$methods (
   }, 
   addNestling= function ( nestlingPointer){
     
-    .self$nestlings[[length(.self$nestlings)+1]] <-  nestlingPointer
+    .self$nestlings$addElement(nestlingPointer)
   },
   #' addDatesandSuccessNestdata
   #'Adds important breeding timing events to the a Reference class object if available. 
@@ -263,7 +303,7 @@ Nest$methods (
   }, 
   addEggMass = function ( mass){
     if(!is.na(mass)){
-        .self$eggMass[[length(.self$eggMass)+1]] <- mass 
+        .self$eggMass$addElement (mass)
         }
 }
   
@@ -271,6 +311,46 @@ Nest$methods (
 
 
 
+YearsSeen <- setRefClass("YearsSeen", 
+                         contains= "TreeSwallow", 
+                         fields= list(
+                           year= "integer", 
+                           age= "character",
+                           sex = "character", 
+                           returnStatus = "character", 
+                           hatchNest = "EnvPointer", 
+                           nest = "useableList", 
+                           observations= "useableList"
+                         )
+)
+
+YearsSeen$methods (
+  initialize= function (year=NA_integer_, 
+                        age=NA_character_, 
+                        sex= NA_character_,
+                        returnstatus=NA_character_, 
+                        hatchNest=EnvPointer(NA_character_, globalData$nests),
+                        nest= useableList(2), #need to put this in a list because the bird might have been involved in multiple nests in a year!
+                        observations = useableList(4)
+  ){
+    .self$year <<- year
+    .self$age <<- age
+    .self$sex <<- sex
+    .self$returnStatus <<- returnStatus
+    .self$hatchNest <<- hatchNest
+    .self$nest <<- nest
+    .self$observations <<- observations
+    
+  }, 
+  addNest = function (nest){
+    .self$nest$addElement(nest)
+    
+  }, 
+  addObservation = function (obs){
+    .self$observations$addElement(obs)
+    
+  }
+)
 
 TreeSwallow <- setRefClass("TreeSwallow",
                            fields = list(
@@ -278,82 +358,47 @@ TreeSwallow <- setRefClass("TreeSwallow",
                              sex = "character",
                              hatchnest = "EnvPointer", # to Nest
                              # a pointer to the nest record from the nest where I hatched
-                             nestList = "list", #(nestData, nestData)
+                             nestList = "useableList", #(nestData, nestData)
                              
-                             observations = "list", 
-                             yearsSeen= "list")
+                             observations = "useableList" , 
+                             yearsSeen= "useableList"
+                             )
                            #all of the things I know about an individual bird based on year
 )
 
 TreeSwallow$methods(
   initialize = function(bandID=NA_character_,
-                        sex=NA_character_, nestList=list(),
-                        hatchnest = EnvPointer()) {
+                        sex=NA_character_, 
+                        hatchnest = EnvPointer(),
+                        nestList=useableList(4),
+                        observations = useableList (4), 
+                        yearSeen =useableList (4)
+                        ) {
     
     .self$bandID <<- bandID
     .self$sex <<-sex
     .self$hatchnest <<- hatchnest
-    .self$nestList <<- list()
-    .self$observations <<- list()
-    .self$yearsSeen <<- list()
+    .self$nestList <<- nestList
+    .self$observations <<- observations
+    .self$yearsSeen <<- yearSeen
   },
   #need a function to add a new nest to the TreeSwallow record
   addNest = function(nest) {
-    .self$nestList[[length(.self$nestList)+1]] <- nest 
+    .self$nestList$addElement(nest )
   },
   #Also need a function to add a new observation of the TreeSwallow
   addObservation = function(obs) {
-    .self$observations[[length(.self$observations)+1]] <- obs 
+    .self$observations$addElement(obs) 
   }, 
   addYearSeen = function (yearSeen) {
-    .self$yearsSeen[[length(.self$yearsSeen)+1]] <- yearSeen
+    .self$yearsSeen$addElement(yearSeen)
   }
 )
 
-YearsSeen <- setRefClass("YearsSeen", 
-                         contains= "TreeSwallow", 
-                         fields= list(
-                           year= "numeric", 
-                           age= "character",
-                           sex = "character", 
-                           returnStatus = "character", 
-                           hatchNest = "EnvPointer", 
-                           nest = "list", 
-                           observations= "list"
-                         )
-)
-
-YearsSeen$methods (
-  initialize= function (year, 
-             age=NA_character_, 
-             sex= NA_character_,
-             returnstatus=NA_character_, 
-             hatchNest=EnvPointer(NA_character_, globalData$nests),
-             nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
-             observations = list()
-             ){
-    .self$year <<- year
-    .self$age <<- age
-    .self$sex <<- sex
-    .self$returnStatus <<- returnStatus
-    .self$hatchNest <<- hatchNest
-    .self$nest <<- list()
-    .self$observations <<- list()
-    
-  }, 
-  addNest = function (nest){
-    .self$nest[[length(.self$nest)+1]] <- nest
-    
-  }, 
-  addObservation = function (obs){
-    .self$observations[[length(.self$observations)+1]] <- obs
-    
-  }
-)
 
 Nestling <- setRefClass("Nestling",
                         fields = list (
-                          measurements = "list",
+                          measurements = "useableList",
                           nestlingCode= "character",
                           nestlingTRES = "EnvPointer", # to TreeSwallow
                           # can point directly to nest - given the decl order
@@ -364,27 +409,28 @@ Nestling <- setRefClass("Nestling",
                         ),
                         methods = list(
                           test = function(nestlingCode, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
-                                          fromNest,  nestID, measurements=list()){
+                                          fromNest,  nestID, measurements=useablelist()){
                             .self$fromNest <<- fromNest
                             .self$nestlingCode <<- nestlingCode
-                            .self$measurements <<- list()
+                            .self$measurements <<- useableList(6)
                           }
                         )
 )
 
 Nestling$methods(
-  initialize = function (nestlingCode=NA_character_, nestlingTRES=EnvPointer(NA_character_, globalData$birds),
-                         fromNest, growthRateMass = NA_real_) {
+  initialize = function (nestlingCode=NA_character_,
+                         nestlingTRES=EnvPointer(NA_character_, globalData$birds),
+                         fromNest, 
+                         growthRateMass = NA_real_, 
+                         measurements= useableList(6)) {
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
     .self$nestlingTRES <<- nestlingTRES
-    .self$measurements <<- list()
+    .self$measurements <<- measurements
     .self$growthRateMass <<- growthRateMass
   }, 
   addObservation = function( nestlingObs){
-    .self$measurements[[length(.self$measurements)+1]] <- nestlingObs
-    #append(values=nestlingObs, x=measurements)
-    #print(.self$measurements)
+    .self$measurements$addElement(nestlingObs)
   }, 
   calcGrowthRate =function(){
     

@@ -3,15 +3,15 @@ exactAges <- c("HY", "SY", "3Y", "4Y", "5Y", "6Y", "7Y", "8Y", "9Y", "10Y", "11Y
 estimateAges <- c("ASY", "A3Y", "A4Y", "A5Y", "A6Y", "A7Y", "A8Y", "A9Y", "A10Y", "A11Y")
 
 
-AllBirds <- as.list(globalData$birds)
+#AllBirds <- as.list(globalData$birds)
 
-for (bird in AllBirds){
+for (bird in as.list(globalData$birds)){
   #need to sort the yearsSeen based on year (that way we can just run though
   #that list and it will all be wonderfully sorted and I will have an easy way
   #to assign return and age)
   bird$yearsSeen <- bird$yearsSeen[order(sapply(bird$yearsSeen,function(x) x$year ))]
-  create a vector of sexes 
-  sexes <- vector(mode = "character")
+  #create a vector of sexes 
+  sexes <- rep(NA_character_, 20)
   #not sure if I need to reinput them all (may just do this automatically because RC is mutable)
   t=0
   for (year in bird$yearsSeen){
@@ -62,7 +62,30 @@ for (bird in AllBirds){
     #Setting this iteration to be the previous year's info for the next iteration
     prev <- year
   }
-  
+  na.omit(sexes)
+  if (n.levels (as.factor (sexes))==1) {
+    #If there is only one level (ie it's Male or Female, but not both then we're all set and can assign it)
+    bird$sex <- sexes[1]
+  } else {
+    timesF <- length(sexes[sexes=="F"])
+    timesM <- length(sexes[sexes=="M"])
+    
+    #if sex is not in agreement
+    if (timesF > timesM){
+      bird$sex <- "F"
+    } else {
+      if (timesM > timesF){
+        bird$sex <- "M"
+      } else {
+        #if the bird is seen equally as a male and as a female then I have no
+        #idea what sex it is and we should put it in as an unknown bird. This
+        #does not take into account whether the bird was seen with a known
+        #partner but that's probably for the best in case the bird is actually
+        #polygamous!
+        bird$sex <- "U"
+      }
+    }
+  }
   
 }
 

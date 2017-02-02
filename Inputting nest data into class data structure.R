@@ -53,9 +53,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
                              age= as.character (nestdata$F.Age[i]), 
                              sex= "F", 
                              returnstatus=NA_character_, 
-                             hatchNest=EnvPointer(NA_character_, globalData$nests),
-                             nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
-                             observations = list()
+                             hatchNest=EnvPointer(NA_character_, globalData$nests)
+                             
       )
       yearentry$addNest (EnvPointer(nestID, globalData$nests))
       
@@ -130,9 +129,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
                              age=as.character (nestdata$M.Age[i]), 
                              sex= "M", 
                              returnstatus=NA_character_, 
-                             hatchNest=EnvPointer(NA_character_, globalData$nests),
-                             nest= list(), #need to put this in a list because the bird might have been involved in multiple nests in a year!
-                             observations = list()
+                             hatchNest=EnvPointer(NA_character_, globalData$nests)
       )
       yearentry$addNest (EnvPointer(nestID, globalData$nests))
       if(!is.na(nestdata$M.Day.measured[i])){
@@ -223,7 +220,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           
         }
         if ( nestling$nestlingTRES$isNull() | 
-             length(nestling$measurements)==0) {
+             length(nestling$measurements$as.list()) == 0 ) {
           #if the nstling wasn't banded and we know nothing about them
           next
         } else {
