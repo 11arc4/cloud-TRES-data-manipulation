@@ -18,210 +18,154 @@
 #' @examples
 InputNestDatatoClassStructure <- function (nestdata, globalData){
   year<- nestdata$Year[1]
+  message("starting year ", year)
   for (i in 1: length(nestdata$Year)){
+    message("  begin nest ", i)
     nestID <- paste (as.character(year), nestdata$BoxID[i], sep="-")  #This is the unique
     nest <- Nest(year=year, siteID=as.character(nestdata$siteID[i]) )
-    
+
     #Need to create (or append) sightings of the parents as TreeSwallows
-    femaleID <- as.character(nestdata$FemaleID[i])
-    if (! is.na(femaleID)) {
-      
-      # look for this bird is the globalData
-      if (!exists(femaleID, globalData$birds)) {
-        # this is the first time we have seen this female...buid a TreeSwallow for it...
-        bird <- TreeSwallow(bandID=femaleID, sex="F")
-        globalData$insertBird(bird)
-        
-      } else {
-        bird <- globalData$findBird(femaleID)
-        # we saw this one before...check that the sex is the same as the last
-        # time - or maybe this was a nestling
-        #   and we didn't know the sex
-        if (length(bird$sex)==0 | is.na(bird$sex)){
-          bird$sex <- "F"
+    parentAttrib <- list(c("FemaleID", "F"), c("MaleID", "M"))
+    for (attrib in parentAttrib) {
+      birdID <- as.character(nestdata[[i, attrib[1]]])
+      sex <- attrib[2]
+      if (! is.na(birdID)) {
+        message("   start ", attrib[1], " ", birdID)
+
+        # look for this bird is the globalData
+        if (!exists(birdID, globalData$birds)) {
+          # this is the first time we have seen this female...buid a TreeSwallow for it...
+          bird <- TreeSwallow(bandID=birdID, sex=sex)
+          globalData$insertBird(bird)
+
         } else {
-          if ( bird$sex == "M"){
-            message("Thats odd.. female ", femaleID, " was male last time.")
-            
+          bird <- globalData$findBird(birdID)
+          # we saw this one before...check that the sex is the same as the last
+          # time - or maybe this was a nestling
+          #   and we didn't know the sex
+          if (length(bird$sex)==0 | is.na(bird$sex)){
+            bird$sex <- sex
+          } else {
+            if ( bird$sex != sex){
+              message("Thats odd.. ", ifelse(sex=="F", "female", "male")," ", birdID, " was ",
+                      ifelse(sex=="F", "male", "female"), " last time.")
+            }
           }
         }
-      }
-      
-      #bird$addNest(nest)
-      
-      yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
-                             age= as.character (nestdata$F.Age[i]), 
-                             sex= "F", 
-                             returnstatus=NA_character_, 
-                             hatchNest=EnvPointer(NA_character_, globalData$nests)
-                             
-      )
-      yearentry$addNest (EnvPointer(nestID, globalData$nests))
-      
-      #If this isn't NA, then we have SOME measurements, and need to add them as an observation
-      if(!is.na(nestdata$F.Day.measured[i])){
-        
-        
-        bodymetrics <- BodyMeasurements(date=as.character(nestdata$F.Day.measured[i]), 
-                                        bird=bird)
-        
-        if (!is.na(nestdata$F.Wing..mm.[i])){
-          bodymetrics$wingChord= as.numeric(nestdata$F.Wing..mm.[i] )
-        }
-        if ( !is.na (nestdata$F.Nineth.Primary..mm.[i])){
-          bodymetrics$ninthPrimary = as.numeric( nestdata$F.Nineth.Primary..mm.[i])
-        }
-        if (!is.na(nestdata$F.Mass..g.[i])){
-          bodymetrics$mass = as.numeric (nestdata$F.Mass..g.[i])
-        }
-        if (!is.na( nestdata$F.Tarsus..mm.[i])){
-          bodymetrics$tarsus = as.numeric( nestdata$F.Tarsus..mm.[i])
-          
-        }
-        
-        #bird$addObservation(bodymetrics)
-        yearentry$addObservation(bodymetrics)
-        
-      }
-      if(!is.na(nestdata$F.Malaria.Status[i])){
-        malaria <- MalariaStatus(date=as.character(nestdata$F.blooddate[i]), 
-                                 bird=bird, 
-                                 status=nestdata$F.Malaria.Status[i])
-        bird$addObservation(malaria)
-        yearentry$addObservation (malaria)
-        
-      }
-      
-      nest$femaleID <- EnvPointer(femaleID, globalData$birds)
-      bird$addYearSeen(yearentry)
-      
-    }
-    
-    
-    
-    
-    maleID <- as.character(nestdata$MaleID[i])
-    
-    if (! is.na(maleID)) {
-      
-      # look for this bird is the globalData
-      if (!exists(maleID, globalData$birds)) {
-        # this is the first time we have seen this female...buid a TreeSwallow for it...
-        bird <- TreeSwallow(bandID=maleID, sex="M")
-        globalData$insertBird(bird)
-        
-      } else {
-        bird <- globalData$findBird(maleID)
-        
-        # we saw this one before...check that the sex is the same as the last time - or maybe this was a nestling
-        #   and we didn't know the sex
-        if (length(bird$sex)==0 | is.na(bird$sex)){
-          bird$sex <- "M"
-        } else {
-          if ( bird$sex == "F"){
-            message("Thats odd.. male ", femaleID, " was female last time.")
-            
+
+        #bird$addNest(nest)
+        age <- as.character(nestdata[[i, paste(sex, "Age", sep=".")]])
+        yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
+                               age= age,
+                               sex= sex,
+                               returnstatus=NA_character_,
+                               hatchNest=EnvPointer(NA_character_, globalData$nests)
+
+        )
+        yearentry$addNest (EnvPointer(nestID, globalData$nests))
+
+        #If this isn't NA, then we have SOME measurements, and need to add them as an observation
+        dayMeasured <-  nestdata[[i, paste(sex, "Day.measured", sep=".")]]
+        if(!is.na(dayMeasured)){
+
+
+          bodymetrics <- BodyMeasurements(date=as.character(dayMeasured),
+                                          bird=bird)
+          for (metric in list(c("Wing..mm.", "wingChord"), c("Nineth.Primary..mm.", "ninthPrimary"),
+                              c("Mass..g.", "mass"), c("Tarsus..mm.", "tarsus"))) {
+            k = paste(sex, metric[1], sep=".")
+            m <- nestdata[[i, k]]
+            if (!is.na(m)) {
+              bodymetrics[[metric[2]]] <- as.numeric(m)
+            }
           }
+          #bird$addObservation(bodymetrics)
+          yearentry$addObservation(bodymetrics)
+
         }
+        k <- paste(sex, "Malaria.Status", sep=".")
+        m <= nestdata[[i, k]]
+        if(!is.na(m)){
+          d <- paste(sex, "blooddate", sep=".")
+          malaria <- MalariaStatus(date=as.character(nestdata[[i, d]]),
+                                   bird=bird,
+                                   status=m)
+          #bird$addObservation(malaria)
+          yearentry$addObservation(malaria)
+
+        }
+
+        nest[[attrib[1]]] <- EnvPointer(birdID, globalData$birds)
+        bird$addYearSeen(yearentry)
+
       }
-      #bird$addNest(nest)
-      yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
-                             age=as.character (nestdata$M.Age[i]), 
-                             sex= "M", 
-                             returnstatus=NA_character_, 
-                             hatchNest=EnvPointer(NA_character_, globalData$nests)
-      )
-      yearentry$addNest (EnvPointer(nestID, globalData$nests))
-      if(!is.na(nestdata$M.Day.measured[i])){
-        
-        
-        bodymetrics <- BodyMeasurements(date=as.character(nestdata$M.Day.measured[i]), 
-                                        bird=bird)
-        
-        if (!is.na(nestdata$M.Wing..mm.[i])){
-          bodymetrics$wingChord= as.numeric (nestdata$M.Wing..mm.[i] )
-        }
-        if ( !is.na (nestdata$M.Nineth.Primary..mm.[i])){
-          bodymetrics$ninthPrimary = as.numeric( nestdata$M.Nineth.Primary..mm.[i])
-        }
-        if (!is.na(nestdata$M.Mass..g.[i])){
-          bodymetrics$mass = as.numeric (nestdata$M.Mass..g.[i])
-        }
-        if (!is.na( nestdata$M.Tarsus..mm.[i])){
-          bodymetrics$tarsus = as.numeric (nestdata$M.Tarsus..mm.[i])
-          
-        }
-        
-       # bird$addObservation(bodymetrics)
-        yearentry$addObservation (bodymetrics)
-        
-        
-      }
-      if(!is.na(nestdata$M.Malaria.Status[i])){
-        malaria <- MalariaStatus(date=as.character(nestdata$M.blooddate[i]), 
-                                 bird=bird, 
-                                 status=nestdata$M.Malaria.Status[i])
-        bird$addObservation(malaria)
-        yearentry$addObservation (malaria)
-        
-      }
-      nest$maleID <- EnvPointer(maleID, globalData$birds)
-      bird$addYearSeen(yearentry)
-      
     }
+
     # call a method on the nest to populate the rest of the data
     #nest$populateMesaurements(nestdata, rownumber)
-    
+
     #add all the important dates and breeding success measurements to the nest
     nest$addDatesandSuccessNestdata(nest, nestdata, i )
-    
-    
+
+
     n_measures <- c("mass.d", "tarsus.d", "wing.d")
-    
-    N_obs <- c( "mass", 
+
+    N_obs <- c( "mass",
                 "tarsus",
-                "ninthPrimary", 
-                "age", 
-                "nestling" 
+                "ninthPrimary",
+                "age",
+                "nestling"
     )
     #Need to make all the nestlings, and also need to add them to the data
+    #  I think that it should be faster to have a vector of nestling keys
+    #  c("band.1", "band.2", ... ) - and subset the dataframe to extract them all,
+    #  filtering out the NAs...then go get all the observations for the non-NA nestlings
+    #  the same way (i.e., via a subsetting action rather than a loop)
+    #  When we get the list back from the subset, we ought to be able to 'apply' over
+    #  the list - to build all the observations as well.
+    builtNestlings <- 0
+    keptNestlings <- 0
+    builtObservations <- 0
+    keptObs <- 0
     for (j in 1:10){
       #This creates the Nestling, and creates an associated TreeSwallow if applicable
-      nestling<- globalData$buildNestling(nestdata=nestdata, 
-                                          chicknumber=j, 
-                                          rownumber=i, 
+      nestling<- globalData$buildNestling(nestdata=nestdata,
+                                          chicknumber=j,
+                                          rownumber=i,
                                           dataSingleton = globalData)
-      
+
       #sometimes nestlings will exist as null nestlings if there aren't columns 1-10
       #in the nest data so we need to double check to make sure that a nestling
       #actually has been created.
       if (!is.null(nestling)){
-        
+        builtNestlings <- builtNestlings + 1
         for (day in 1:18){
           nestlingObs <- NestlingMeasurements(age=day)
           h=0
           for (m in 1: length(n_measures)){
             measurement <- paste( n_measures[m], day, ".", j, sep="")
             if(exists( measurement, nestdata)){
-              if (!is.na (nestdata[ i, measurement])){
+              meas <- nestdata[[i, measurement]]
+              if (!is.na (meas)){
                 h=h+1
-                nestlingObs[[N_obs[m]]]<- as.numeric(nestdata[i,  measurement])
-              } 
-              
+                nestlingObs[[N_obs[m]]]<- as.numeric(meas)
+                builtObservations <- builtObservations + 1
+              }
+
             }
           }
-          
+
           #Want to add all the different measurements from that day together and
           #THEN check to see if there are any measurements made, and add it onto
           #the Nestling$measurements
           if(h>0){
             nestling$addObservation(nestlingObs)
           }
-          
+
         }
-        if ( nestling$nestlingTRES$isNull() | 
+        if ( nestling$nestlingTRES$isNull() |
              length(nestling$measurements$as.list()) == 0 ) {
-          #if the nstling wasn't banded and we know nothing about them
+          #if the nestling wasn't banded and we know nothing about them
           next
         } else {
           #we know somehting about them and should put them into the nest and the nestlings database
@@ -229,10 +173,17 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           nest$addNestling(EnvPointer(nestling$nestlingCode, globalData$nestlings))
           #add the Nestling to the nestlings hash
           globalData$insertNestling(nestling)
+          keptNestlings <- keptNestlings + 1
+          keptObs <- keptObs + h
         }
-        
       }
     }
+    # HGC:  I added some counts to see how many things we were building vs. how many
+    #  we were keeping...at least for the year 1988, we keep very little.
+    #  this can probably be faster, if we filter better (even if the processing for the
+    #  stuff we want to keep is more costly)
+    message("   nestlings:", keptNestlings, " of ", builtNestlings,
+            " obs:", keptObs, " of ", builtObservations)
     globalData$insertNest(nestID= nestID, Nest=nest)
   }
 }
