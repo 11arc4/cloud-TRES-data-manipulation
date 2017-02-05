@@ -43,50 +43,70 @@ for ( bandID in band$BandID){
       #check to see whether this is a new observation of the bird or not. If it's
       #new, add it as an observation. If it's a duplicated observation, just skip
       #it
+      
       datesEqual=0
+      yearsEqual =0
       date <- band$Date[i]
       if (length(bird$yearsSeen$as.list())>0){
         for (year in bird$yearsSeen$as.list()){
-          for (obs in year$observations$as.list()){
-            if (obs$equal(date)){
-              datesEqual= 1
-            } 
+          if(year$year==band$Year[i]){
+            yearsEqual= yearsEqual + 1 #my way of checking to see if we've matched a year....
+            if(length(year$observations$as.list()) > 0){
+              for (obs in year$observations$as.list()){
+                if (obs$equal(date)){
+                  datesEqual= 1
+                } 
+              }
+              if(datesEqual==0){
+                #if none of the dates match up then we have a new observation of this bird and should go and add it
+                Obs <- BodyMeasurements(date=date, bird=bird, 
+                                        wingChord = band$Wing.Chord[i], 
+                                        ninthPrimary = band$Ninth.Primary[i],
+                                        mass = band$Mass [i], 
+                                        tarsus = band$Tarsus[i] )
+                
+                year$observations$addElement (Obs)  
+                
+              }
+            }
           }
-          if(datesEqual==0){
-            #if none of the dates match up then we have a new observation of this bird and should go and add it
-            Obs <- BodyMeasurements(date=date, bird=bird, 
-                                    wingChord = band$Wing.Chord[i], 
-                                    ninthPrimary = band$Ninth.Primary,
-                                    mass = band$Mass [i], 
-                                    tarsus = band$Tarsus[i] )
-            bird$addObservation(Obs)
-          }
-        } else {
-          #There are no observations of this bird so we can just add the first one
+        }
+        if (yearsEqual==0){
+          year <- YearsSeen(year=band$Year,
+                            age=band$Age,
+                            sex= band$Sex)
           Obs <- BodyMeasurements(date=date, bird=bird, 
                                   wingChord = band$Wing.Chord[i], 
-                                  ninthPrimary = band$Ninth.Primary,
+                                  ninthPrimary = band$Ninth.Primary[i],
                                   mass = band$Mass [i], 
                                   tarsus = band$Tarsus[i] )
-          bird$addObservation(Obs)
+          
+          year$observations$addElement (Obs) 
         }
-      } else {
-        
-        #The bird is an adult and hasn't been seen in a nest
-        # (ie it's a floater)
-        sex=band$Sex[i]
-        bird <- TreeSwallow(bandID=bandID, sex=sex)
-        date <- band$Date[i]
-        
-        Obs <- BodyMeasurements(date=date, bird=bird, 
-                                wingChord = band$Wing.Chord[i], 
-                                ninthPrimary = band$Ninth.Primary,
-                                mass = band$Mass [i], 
-                                tarsus = band$Tarsus[i] )
-        bird$addObservation(Obs)
-        globalData$insertBird(bird = bird)
-        
       }
+      
+      
+    } else {
+      
+      #The bird is an adult and hasn't been seen in a nest
+      # (ie it's a floater)
+      sex=band$Sex[i]
+      bird <- TreeSwallow(bandID=bandID, sex=sex)
+      date <- band$Date[i]
+      
+      Obs <- BodyMeasurements(date=date, bird=bird, 
+                              wingChord = band$Wing.Chord[i], 
+                              ninthPrimary = band$Ninth.Primary,
+                              mass = band$Mass [i], 
+                              tarsus = band$Tarsus[i] )
+      year <- YearsSeen(year=band$Year[i],
+                        age=band$Age[i],
+                        sex= band$Sex[i])
+      year$observations$addElement(Obs)
+      bird$yearsSeen$addElement(year)
+      globalData$insertBird(bird = bird)
+      
     }
   }
 }
+
