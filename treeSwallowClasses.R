@@ -26,7 +26,7 @@ useableList$methods (
   }, 
   addElement = function (element){
     if(.self$length == .self$capacity) {
-      methods$double.size()
+      .self$double.size()
     }
     
     .self$length <- .self$length + 1
@@ -330,8 +330,8 @@ YearsSeen$methods (
                         sex= NA_character_,
                         returnstatus=NA_character_, 
                         hatchNest=EnvPointer(NA_character_, globalData$nests),
-                        nest= useableList(2), #need to put this in a list because the bird might have been involved in multiple nests in a year!
-                        observations = useableList(4)
+                        nest= useableList(1), #need to put this in a list because the bird might have been involved in multiple nests in a year!
+                        observations = useableList(1)
   ){
     .self$year <<- year
     .self$age <<- age
@@ -372,7 +372,7 @@ TreeSwallow$methods(
                         hatchnest = EnvPointer(),
                         #nestList=useableList(4),
                         #observations = useableList (4), 
-                        yearSeen =useableList (4)
+                        yearsSeen =useableList (1)
                         ) {
     
     .self$bandID <<- bandID
@@ -380,7 +380,7 @@ TreeSwallow$methods(
     .self$hatchnest <<- hatchnest
     #.self$nestList <<- nestList
     #.self$observations <<- observations
-    .self$yearsSeen <<- yearSeen
+    .self$yearsSeen <<- yearsSeen
   },
   #need a function to add a new nest to the TreeSwallow record
   addNest = function(nest) {
@@ -390,8 +390,8 @@ TreeSwallow$methods(
   addObservation = function(obs) {
     .self$observations$addElement(obs) 
   }, 
-  addYearSeen = function (yearSeen) {
-    .self$yearsSeen$addElement(yearSeen)
+  addYearSeen = function (yearEntry) {
+    .self$yearsSeen$addElement(yearEntry)
   }
 )
 
@@ -412,7 +412,7 @@ Nestling <- setRefClass("Nestling",
                                           fromNest,  nestID, measurements=useablelist()){
                             .self$fromNest <<- fromNest
                             .self$nestlingCode <<- nestlingCode
-                            .self$measurements <<- useableList(6)
+                            .self$measurements <<- useableList(2)
                           }
                         )
 )
@@ -422,7 +422,7 @@ Nestling$methods(
                          nestlingTRES=EnvPointer(NA_character_, globalData$birds),
                          fromNest, 
                          growthRateMass = NA_real_, 
-                         measurements= useableList(6)) {
+                         measurements= useableList(2)) {
     .self$fromNest <<- fromNest
     .self$nestlingCode <<- nestlingCode
     .self$nestlingTRES <<- nestlingTRES
@@ -434,13 +434,13 @@ Nestling$methods(
   }, 
   calcGrowthRate =function(){
     
-    if(length(.self$measurements) < 2){
+    if(length(.self$measurements$as.list()) < 2){
       #If there aren't two measurements then growth rate is NA because we haven't got a baseline
       return(NA)
     } else {
       day4 <- NestlingMeasurements(age=0)
       day12 <- NestlingMeasurements (age=20)
-      for (obs in .self$measurements) {
+      for (obs in .self$measurements$as.list()) {
         
         if(!is.na(obs$mass)){
           if(abs(obs$age - 4) <= abs (day4$age - 4) ){

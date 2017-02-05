@@ -9,12 +9,12 @@ for (bird in as.list(globalData$birds)){
   #need to sort the yearsSeen based on year (that way we can just run though
   #that list and it will all be wonderfully sorted and I will have an easy way
   #to assign return and age)
-  bird$yearsSeen <- bird$yearsSeen[order(sapply(bird$yearsSeen,function(x) x$year ))]
+  bird$yearsSeen$buffer <- bird$yearsSeen$buffer[order(sapply(bird$yearsSeen$buffer,function(x) x$year ))]
   #create a vector of sexes 
   sexes <- rep(NA_character_, 20)
   #not sure if I need to reinput them all (may just do this automatically because RC is mutable)
   t=0
-  for (year in bird$yearsSeen){
+  for (year in bird$yearsSeen$as.list()){
     sexes[length(sexes)+1] <- year$sex
     t=t+1
     if (t==1){

@@ -87,7 +87,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         malaria <- MalariaStatus(date=as.character(nestdata$F.blooddate[i]), 
                                  bird=bird, 
                                  status=nestdata$F.Malaria.Status[i])
-        bird$addObservation(malaria)
+        #bird$addObservation(malaria)
         yearentry$addObservation (malaria)
         
       }
@@ -161,7 +161,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         malaria <- MalariaStatus(date=as.character(nestdata$M.blooddate[i]), 
                                  bird=bird, 
                                  status=nestdata$M.Malaria.Status[i])
-        bird$addObservation(malaria)
+        #bird$addObservation(malaria)
         yearentry$addObservation (malaria)
         
       }

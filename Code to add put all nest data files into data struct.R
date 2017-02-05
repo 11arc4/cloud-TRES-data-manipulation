@@ -6,7 +6,8 @@ listfilenames <- list.files(outerdir)
 
 globalData <- GlobalBirdData()
 
-for (filename in listfilenames){
+for (j in 1:length(listfilenames)){
+  filename <- listfilenames[j]
   file <- paste( outerdir, filename, sep="/")
   nestdata<- read.csv(file, as.is=TRUE, na.strings=c("", "NA"))
   year <- nestdata$Year[1]
@@ -18,3 +19,11 @@ for (filename in listfilenames){
 #as.list(globalData$nests)
 ls(all.names=TRUE, globalData$nests)
 #pulls out all the stuff in nest_hash (the actual stuff not just the names)
+
+
+#save the super slow data structure in something for later use....
+saveRDS(globalData, "globalData.rds")
+
+
+# if you want to reload the globalData object as globalData
+#globalData <- readRDS("globalData.rds")

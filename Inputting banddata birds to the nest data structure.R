@@ -45,17 +45,24 @@ for ( bandID in band$BandID){
       #it
       datesEqual=0
       date <- band$Date[i]
-      if (length(bird$observations)>0){
-        for (obs in bird$observations){
-          
-          
-          if (obs$equal(date)){
-            datesEqual= 1
-          } 
-          
-        }
-        if(datesEqual==0){
-          #if none of the dates match up then we have a new observation of this bird and should go and add it
+      if (length(bird$yearsSeen$as.list())>0){
+        for (year in bird$yearsSeen$as.list()){
+          for (obs in year$observations$as.list()){
+            if (obs$equal(date)){
+              datesEqual= 1
+            } 
+          }
+          if(datesEqual==0){
+            #if none of the dates match up then we have a new observation of this bird and should go and add it
+            Obs <- BodyMeasurements(date=date, bird=bird, 
+                                    wingChord = band$Wing.Chord[i], 
+                                    ninthPrimary = band$Ninth.Primary,
+                                    mass = band$Mass [i], 
+                                    tarsus = band$Tarsus[i] )
+            bird$addObservation(Obs)
+          }
+        } else {
+          #There are no observations of this bird so we can just add the first one
           Obs <- BodyMeasurements(date=date, bird=bird, 
                                   wingChord = band$Wing.Chord[i], 
                                   ninthPrimary = band$Ninth.Primary,
@@ -64,31 +71,22 @@ for ( bandID in band$BandID){
           bird$addObservation(Obs)
         }
       } else {
-        #There are no observations of this bird so we can just add the first one
+        
+        #The bird is an adult and hasn't been seen in a nest
+        # (ie it's a floater)
+        sex=band$Sex[i]
+        bird <- TreeSwallow(bandID=bandID, sex=sex)
+        date <- band$Date[i]
+        
         Obs <- BodyMeasurements(date=date, bird=bird, 
                                 wingChord = band$Wing.Chord[i], 
                                 ninthPrimary = band$Ninth.Primary,
                                 mass = band$Mass [i], 
                                 tarsus = band$Tarsus[i] )
         bird$addObservation(Obs)
+        globalData$insertBird(bird = bird)
+        
       }
-    } else {
-      
-      #The bird is an adult and hasn't been seen in a nest
-      # (ie it's a floater)
-      sex=band$Sex[i]
-      bird <- TreeSwallow(bandID=bandID, sex=sex)
-      date <- band$Date[i]
-      
-      Obs <- BodyMeasurements(date=date, bird=bird, 
-                              wingChord = band$Wing.Chord[i], 
-                              ninthPrimary = band$Ninth.Primary,
-                              mass = band$Mass [i], 
-                              tarsus = band$Tarsus[i] )
-      bird$addObservation(Obs)
-      globalData$insertBird(bird = bird)
-      
     }
   }
 }
-    
