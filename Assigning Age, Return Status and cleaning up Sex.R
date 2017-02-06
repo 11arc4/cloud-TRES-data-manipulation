@@ -15,8 +15,12 @@ for (bird in as.list(globalData$birds)){
   #not sure if I need to reinput them all (may just do this automatically because RC is mutable)
   t=0
   for (year in bird$yearsSeen$as.list()){
-    sexes[length(sexes)+1] <- year$sex
     t=t+1
+    if (length(year$sex) >0){
+      sexes[length(sexes)+1] <- year$sex
+    } else {
+      sexes[t] <- "U"
+    }
     if (t==1){
       if (is.na (year$hatchNest$m_key)){
         year$returnStatus <- "New"
@@ -62,8 +66,8 @@ for (bird in as.list(globalData$birds)){
     #Setting this iteration to be the previous year's info for the next iteration
     prev <- year
   }
-  na.omit(sexes)
-  if (n.levels (as.factor (sexes))==1) {
+  sexes <- na.omit(sexes)[[1]]
+  if (nlevels (as.factor (sexes))==1) {
     #If there is only one level (ie it's Male or Female, but not both then we're all set and can assign it)
     bird$sex <- sexes[1]
   } else {
