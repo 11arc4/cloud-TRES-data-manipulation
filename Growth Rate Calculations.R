@@ -13,3 +13,4 @@ for (nestling in as.list(globalData$nestlings)){
 
 
 
+#Issue is that when growth rate is NA, then the growthrate is 

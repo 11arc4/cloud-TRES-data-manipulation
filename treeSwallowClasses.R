@@ -468,7 +468,11 @@ Nestling$methods(
       Massgrowth <- (day12$mass- day4$mass)/(day12$age - day4$age)
       message ( "growthrate calculated from",day4$age, "to",  day12$age, sep=" ")
     }
-    return(Massgrowth)
+    if(!is.na(Massgrowth)){
+      return(Massgrowth)
+    } else {
+      return(NA_real_)
+    }
   },
   addGrowthRateMass =function(growthRate ){
     .self$growthRateMass <- growthRate

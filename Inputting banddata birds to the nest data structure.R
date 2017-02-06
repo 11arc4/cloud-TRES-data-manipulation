@@ -5,7 +5,7 @@ bandfilename <- paste( banddir, "1975-2016 Bands.csv", sep="/")
 #Load in the updated band data from 1975-2016
 band <- read.csv(file=bandfilename, as.is=TRUE, na.strings=c("", "NA"))
 #Set all the columns to be the correct type of value
-as.character (band$BandID)
+band$BandID <-as.character (band$BandID)
 band$Wing.Chord <- as.numeric(band$Wing.Chord)
 band$Tarsus <- as.numeric (band$Tarsus)
 band$Mass <- as.numeric( band$Mass)
@@ -23,7 +23,7 @@ band<- band[which(!is.na(band$Age)), ]
 i=0
 for ( bandID in band$BandID){
   i=i+1
-  #If this entry is a nestling, then we check to see if it exists in the hash
+#If this entry is a nestling, then we check to see if it exists in the hash
   if (band$Age[i]=="L" | band$Age[i]== "HY"){
     if (!exists(bandID, globalData$nestlings)){
       #if the nestling wasn't already made then we need to make this nestling
@@ -109,4 +109,8 @@ for ( bandID in band$BandID){
     }
   }
 }
+
+saveRDS(globalData, "AllGlobalData.rds")
+#To reload this 
+#globalData <- readRDS("AllGlobalData.rds")
 
