@@ -141,8 +141,10 @@ for ( i in 1: length(band$BandID)){
     }
   }
 }
+AllglobalData <- globalData
 
-saveRDS(globalData, "AllGlobalData.rds")
+#Appears to be a very bad way to store this data-- takes forever so not really usable
+#saveRDS(globalData, "AllGlobalData.rds")
 #To reload this 
 #globalData <- readRDS("AllGlobalData.rds")
 
