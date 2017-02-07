@@ -430,7 +430,7 @@ Nestling$methods(
     if(length(.self$measurements$as.list()) < 2){
 
       #If there aren't two measurements then growth rate is NA because we haven't got a baseline
-      return(NA)
+      return(NA_real_)
     } else {
       day4 <- NestlingMeasurements(age=0)
       day12 <- NestlingMeasurements (age=20)
