@@ -1,4 +1,15 @@
-banddir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
+if ("Amelia" == Sys.getenv("USERNAME")) {
+  banddir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
+  
+  
+} 
+
+if ("Lab_Users" == Sys.getenv("USERNAME")) {
+  banddir <- "~/Amelia TRES data 1975-2016/Improved and Cleaned Data"
+} 
+
+
+
 
 bandfilename <- paste( banddir, "1975-2016 Bands.csv", sep="/")
 
