@@ -20,7 +20,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
   year<- nestdata$Year[1]
   message("starting year ", year)
   for (i in 1: length(nestdata$Year)){
-    message("  begin nest ", i)
+    #message("  begin nest ", i)
     nestID <- paste (as.character(year), nestdata$BoxID[i], sep="-")  #This is the unique
     nest <- Nest(year=year, siteID=as.character(nestdata$siteID[i]) )
     
@@ -30,7 +30,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       birdID <- as.character(nestdata[[i, attrib[1]]])
       sex <- attrib[2]
       if (! is.na(birdID)) {
-        message("   start ", attrib[1], " ", birdID)
+        #message("   start ", attrib[1], " ", birdID)
         
         # look for this bird is the globalData
         if (!exists(birdID, globalData$birds)) {
@@ -186,8 +186,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
     #  we were keeping...at least for the year 1988, we keep very little.
     #  this can probably be faster, if we filter better (even if the processing for the
     #  stuff we want to keep is more costly)
-    message("   nestlings:", keptNestlings, " of ", builtNestlings,
-            " obs:", keptObs, " of ", builtObservations)
+    #message("   nestlings:", keptNestlings, " of ", builtNestlings,
+          #  " obs:", keptObs, " of ", builtObservations)
     globalData$insertNest(nestID= nestID, Nest=nest)
   }
 }  
