@@ -126,7 +126,7 @@ GlobalBirdData$methods(
   buildNestling = function(nestdata,
                            chicknumber,
                            rownumber,
-                           dataSingleton) {
+                           dataSingleton=globalData) {
     nestID <-
       .self$buildNestID(year = nestdata$Year[1], boxID = nestdata$BoxID[rownumber])  #This is the unique
     nestlingCode <-
@@ -180,7 +180,7 @@ GlobalBirdData$methods(
 )
 
 
-globalData <- GlobalBirdData()
+#globalData <- GlobalBirdData()
 
 getGlobalSingleton <- function() {
   globalData
