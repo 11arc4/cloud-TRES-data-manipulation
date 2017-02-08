@@ -68,8 +68,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         dayMeasured <-  nestdata[[i, paste(sex, "Day.measured", sep=".")]]
         if(!is.na(dayMeasured)){
           
-          bodymetrics <- BodyMeasurements(date=as.character(dayMeasured),
-                                          bird=bird)
+          bodymetrics <- BodyMeasurements(date=as.character(dayMeasured)
+                                          )
           for (metric in list(c("Wing..mm.", "wingChord"), c("Nineth.Primary..mm.", "ninthPrimary"),
                               c("Mass..g.", "mass"), c("Tarsus..mm.", "tarsus"))) {
             k = paste(sex, metric[1], sep=".")
@@ -80,7 +80,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
               }
             }
           }
-          #bird$addObservation(bodymetrics)
           yearentry$addObservation(bodymetrics)
           
         }
@@ -90,7 +89,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           if(!is.na(m)){
             d <- paste(sex, "blooddate", sep=".")
             malaria <- MalariaStatus(date=as.character(nestdata[[i, d]]),
-                                     bird=bird,
                                      status=m)
             #bird$addObservation(malaria)
             yearentry$addObservation(malaria)
