@@ -20,9 +20,8 @@ processNestDataFiles <- function(inputDir, outputDir, banddata) {
 
 if ("Amelia" == Sys.getenv("USERNAME")) {
   topLevelDir <- "~/Masters Thesis Project/Tree Swallow Data"
-  bandDataDir = paste(sep = "/", topLevelDir, "TRES data", 
-                      "Data Sets I really need to ADD to my current dataset")
-  bandDataFile = "TRESBAND_75-01.csv"
+  bandDataDir = paste(sep = "/", topLevelDir, "Amelia TRES data 1975-2016", "Improved and Cleaned Data")
+  bandDataFile = "Updated band data 1975-2001.csv"
   
   resultdir <- paste(sep = "/", topLevelDir, "Amelia TRES data 1975-2016",
                      "Improved and Cleaned Data")
@@ -36,10 +35,11 @@ if ("Amelia" == Sys.getenv("USERNAME")) {
                      "Improved and Cleaned Data")
   banddata <- read.csv(paste(topLevelDir, bandDataFile, sep = "/"),
                        as.is=TRUE, na.strings = c("", "NA"))
+  banddata <- fixUpBandData(banddata)
+  
 }
 
 
-banddata <- fixUpBandData(banddata)
 
 if ("Amelia" == Sys.getenv("USERNAME")) {
   topLevelDir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016"
