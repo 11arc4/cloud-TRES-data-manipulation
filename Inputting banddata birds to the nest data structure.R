@@ -77,7 +77,7 @@ for ( i in 1: length(band$BandID)){
               }
               if(datesEqual==0){
                 #if none of the dates match up then we have a new observation of this bird and should go and add it
-                Obs <- BodyMeasurements(date=date, bird=bird, 
+                Obs <- BodyMeasurements(date=date, 
                                         wingChord = band$Wing.Chord[i], 
                                         ninthPrimary = band$Ninth.Primary[i],
                                         mass = band$Mass [i], 
@@ -89,7 +89,7 @@ for ( i in 1: length(band$BandID)){
               }
             } else {
               #If there are not observations for this bird this year, then we should probably add them!
-              Obs <- BodyMeasurements(date=date, bird=bird, 
+              Obs <- BodyMeasurements(date=date,
                                       wingChord = band$Wing.Chord[i], 
                                       ninthPrimary = band$Ninth.Primary[i],
                                       mass = band$Mass [i], 
@@ -105,7 +105,7 @@ for ( i in 1: length(band$BandID)){
           year <- YearsSeen(year=band$Year,
                             age=band$Age,
                             sex= band$Sex)
-          Obs <- BodyMeasurements(date=date, bird=bird, 
+          Obs <- BodyMeasurements(date=date,
                                   wingChord = band$Wing.Chord[i], 
                                   ninthPrimary = band$Ninth.Primary[i],
                                   mass = band$Mass [i], 
@@ -126,7 +126,7 @@ for ( i in 1: length(band$BandID)){
       bird <- TreeSwallow(bandID=bandID, sex=sex)
       date <- band$Date[i]
       
-      Obs <- BodyMeasurements(date=date, bird=bird, 
+      Obs <- BodyMeasurements(date=date, 
                               wingChord = band$Wing.Chord[i], 
                               ninthPrimary = band$Ninth.Primary[i],
                               mass = band$Mass [i], 
