@@ -1,15 +1,35 @@
-banddir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
+if ("Amelia" == Sys.getenv("USERNAME")) {
+  banddir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
+  
+  
+} 
+
+if ("Lab_Users" == Sys.getenv("USERNAME")) {
+  banddir <- "~/Amelia TRES data 1975-2016/Improved and Cleaned Data"
+} 
+
+
+
 
 bandfilename <- paste( banddir, "1975-2016 Bands.csv", sep="/")
 
 #Load in the updated band data from 1975-2016
 band <- read.csv(file=bandfilename, as.is=TRUE, na.strings=c("", "NA"))
 #Set all the columns to be the correct type of value
+band$Age <- as.character (band$Age)
 band$BandID <-as.character (band$BandID)
+
 band$Wing.Chord <- as.numeric(band$Wing.Chord)
+band$Wing.Chord[which(band$Wing.Chord==0)] <- NA
+
 band$Tarsus <- as.numeric (band$Tarsus)
+# band$Tarus[which(band$Tarsus==0)] <- NA  There are no places where tarsus is mistakenly put in as 0 so don't need this
+
 band$Mass <- as.numeric( band$Mass)
+band$Mass[which(band$Mass==0)] <- NA
+
 band$Ninth.Primary <- as.numeric(band$Ninth.Primary)
+band$Ninth.Primary[which(band$Ninth.Primary==0)] <- NA
 
 #There are a couple of entries in the banddata where age and sex are both NA.
 #Those entries appear to be lost bands and therefore unusable so we need to
@@ -20,10 +40,8 @@ band<- band[which(!is.na(band$Age)), ]
 #the date on those observations doesn't match up with one that already exists
 #(this will happen when we already used that measurement to fill in measurements
 #in the nest data)
-i=0
-for ( bandID in band$BandID){
-  i=i+1
-#If this entry is a nestling, then we check to see if it exists in the hash
+for ( i in 1: length(band$BandID)){
+  bandID <- band$BandID[i]  #If this entry is a nestling, then we check to see if it exists in the hash
   if (band$Age[i]=="L" | band$Age[i]== "HY"){
     if (!exists(bandID, globalData$nestlings)){
       #if the nestling wasn't already made then we need to make this nestling
@@ -39,7 +57,7 @@ for ( bandID in band$BandID){
     #if the nestling was made theres no need to do anything
   } else {
     if (exists (bandID, globalData$birds)){
-      bird <- get(bandID, globalData$birds)
+      bird <- globalData$findBird(bandID)
       #check to see whether this is a new observation of the bird or not. If it's
       #new, add it as an observation. If it's a duplicated observation, just skip
       #it
@@ -51,23 +69,35 @@ for ( bandID in band$BandID){
         for (year in bird$yearsSeen$as.list()){
           if(year$year==band$Year[i]){
             yearsEqual= yearsEqual + 1 #my way of checking to see if we've matched a year....
-            if(length(year$observations$as.list()) > 0){
+            if( !is.null(year$observations$as.list()[[1]])){
               for (obs in year$observations$as.list()){
-                if (obs$equal(date)){
+                if (obs$date$equal(date)){
                   datesEqual= 1
                 } 
               }
               if(datesEqual==0){
                 #if none of the dates match up then we have a new observation of this bird and should go and add it
-                Obs <- BodyMeasurements(date=date, bird=bird, 
+                Obs <- BodyMeasurements(date=date, 
                                         wingChord = band$Wing.Chord[i], 
                                         ninthPrimary = band$Ninth.Primary[i],
                                         mass = band$Mass [i], 
                                         tarsus = band$Tarsus[i] )
                 
-                year$observations$addElement (Obs)  
+                year$addObservation (Obs) 
+                bird$addYearSeen(year)
                 
               }
+            } else {
+              #If there are not observations for this bird this year, then we should probably add them!
+              Obs <- BodyMeasurements(date=date,
+                                      wingChord = band$Wing.Chord[i], 
+                                      ninthPrimary = band$Ninth.Primary[i],
+                                      mass = band$Mass [i], 
+                                      tarsus = band$Tarsus[i] )
+              
+              year$addObservation (Obs)  
+              bird$addYearSeen(year)
+              
             }
           }
         }
@@ -75,13 +105,15 @@ for ( bandID in band$BandID){
           year <- YearsSeen(year=band$Year,
                             age=band$Age,
                             sex= band$Sex)
-          Obs <- BodyMeasurements(date=date, bird=bird, 
+          Obs <- BodyMeasurements(date=date,
                                   wingChord = band$Wing.Chord[i], 
                                   ninthPrimary = band$Ninth.Primary[i],
                                   mass = band$Mass [i], 
                                   tarsus = band$Tarsus[i] )
+          year$addObservation(Obs)
+          bird$addYearSeen(year)
           
-          year$observations$addElement (Obs) 
+          
         }
       }
       
@@ -94,23 +126,25 @@ for ( bandID in band$BandID){
       bird <- TreeSwallow(bandID=bandID, sex=sex)
       date <- band$Date[i]
       
-      Obs <- BodyMeasurements(date=date, bird=bird, 
+      Obs <- BodyMeasurements(date=date, 
                               wingChord = band$Wing.Chord[i], 
-                              ninthPrimary = band$Ninth.Primary,
+                              ninthPrimary = band$Ninth.Primary[i],
                               mass = band$Mass [i], 
                               tarsus = band$Tarsus[i] )
       year <- YearsSeen(year=band$Year[i],
                         age=band$Age[i],
                         sex= band$Sex[i])
-      year$observations$addElement(Obs)
-      bird$yearsSeen$addElement(year)
-      globalData$insertBird(bird = bird)
+      year$addObservation(Obs)      
+      bird$addYearSeen(year)
+      globalData$insertBird( bird)
       
     }
   }
 }
+AllglobalData <- globalData
 
-saveRDS(globalData, "AllGlobalData.rds")
+#Appears to be a very bad way to store this data-- takes forever so not really usable
+#saveRDS(globalData, "AllGlobalData.rds")
 #To reload this 
 #globalData <- readRDS("AllGlobalData.rds")
 

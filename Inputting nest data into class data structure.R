@@ -20,7 +20,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
   year<- nestdata$Year[1]
   message("starting year ", year)
   for (i in 1: length(nestdata$Year)){
-    message("  begin nest ", i)
+    #message("  begin nest ", i)
     nestID <- paste (as.character(year), nestdata$BoxID[i], sep="-")  #This is the unique
     nest <- Nest(year=year, siteID=as.character(nestdata$siteID[i]) )
     
@@ -30,7 +30,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       birdID <- as.character(nestdata[[i, attrib[1]]])
       sex <- attrib[2]
       if (! is.na(birdID)) {
-        message("   start ", attrib[1], " ", birdID)
+        #message("   start ", attrib[1], " ", birdID)
         
         # look for this bird is the globalData
         if (!exists(birdID, globalData$birds)) {
@@ -68,8 +68,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
         dayMeasured <-  nestdata[[i, paste(sex, "Day.measured", sep=".")]]
         if(!is.na(dayMeasured)){
           
-          bodymetrics <- BodyMeasurements(date=as.character(dayMeasured),
-                                          bird=bird)
+          bodymetrics <- BodyMeasurements(date=as.character(dayMeasured)
+                                          )
           for (metric in list(c("Wing..mm.", "wingChord"), c("Nineth.Primary..mm.", "ninthPrimary"),
                               c("Mass..g.", "mass"), c("Tarsus..mm.", "tarsus"))) {
             k = paste(sex, metric[1], sep=".")
@@ -80,7 +80,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
               }
             }
           }
-          #bird$addObservation(bodymetrics)
           yearentry$addObservation(bodymetrics)
           
         }
@@ -90,7 +89,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           if(!is.na(m)){
             d <- paste(sex, "blooddate", sep=".")
             malaria <- MalariaStatus(date=as.character(nestdata[[i, d]]),
-                                     bird=bird,
                                      status=m)
             #bird$addObservation(malaria)
             yearentry$addObservation(malaria)
@@ -186,8 +184,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
     #  we were keeping...at least for the year 1988, we keep very little.
     #  this can probably be faster, if we filter better (even if the processing for the
     #  stuff we want to keep is more costly)
-    message("   nestlings:", keptNestlings, " of ", builtNestlings,
-            " obs:", keptObs, " of ", builtObservations)
+    #message("   nestlings:", keptNestlings, " of ", builtNestlings,
+          #  " obs:", keptObs, " of ", builtObservations)
     globalData$insertNest(nestID= nestID, Nest=nest)
   }
 }  

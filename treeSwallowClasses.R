@@ -12,7 +12,7 @@ useableList <-  setRefClass("useableList",
                             ))
 
 useableList$methods (
-  initialize = function (capacity= 15){
+  initialize = function (capacity= 3){
     .self$capacity <<- capacity
     buffer <<- vector('list', capacity) #making a list of length "capacity"
     length <<- 0
@@ -336,8 +336,6 @@ YearsSeen$methods (
     .self$sex <<- sex
     .self$returnStatus <<- returnStatus
     .self$hatchNest <<- hatchNest
-    .self$nest <<- nest
-    .self$observations <<- observations
 
   },
   addNest = function (nest){
@@ -430,7 +428,7 @@ Nestling$methods(
     if(length(.self$measurements$as.list()) < 2){
 
       #If there aren't two measurements then growth rate is NA because we haven't got a baseline
-      return(NA)
+      return(NA_real_)
     } else {
       day4 <- NestlingMeasurements(age=0)
       day12 <- NestlingMeasurements (age=20)
@@ -487,23 +485,20 @@ Observation <- setRefClass("Observation",
                              date = "character",
                              #Dates are all characters now so I'll input them into the file structure as a
                              #character--that seems to get distorted less anyway
-                             type = "character",
-                             bird = "TreeSwallow"
+                             type = "character"
                            )
 )
 Observation$methods(
-  initialize = function(date, bird, type = NA_character_) {
-    init(date,  type, bird)
+  initialize = function(date, type = NA_character_) {
+    init(date,  type)
   },
-  initBase = function(date, type, bird) {
+  initBase = function(date, type) {
     .self$date <<- date
     .self$type <<- type
-    .self$bird <<- bird
   },
   equal = function(that) {
     return (date == that$date &
-              type == that$type &
-              identical(bird, that$bird))
+              type == that$type )
   }
 
 )
@@ -522,7 +517,7 @@ BodyMeasurements <- setRefClass("BodyMeasurements",
 BodyMeasurements$methods(
   initialize = function (date, bird, wingChord = NA_real_, ninthPrimary = NA_real_,
                          mass = NA_real_, tarsus = NA_real_) {
-    initBase(date,  "bodymeasurement", bird)
+    initBase(date,  "bodymeasurement")
     .self$wingChord <<- wingChord
     .self$ninthPrimary <<- ninthPrimary
     .self$mass <<- mass
@@ -539,8 +534,8 @@ MalariaStatus <- setRefClass("MalariaStatus",
                                status = "integer"
                              ))
 MalariaStatus$methods (
-  initialize=function(date, bird, status){
-    initBase(date,  "MalariaStatus", bird)
+  initialize=function(date,  status){
+    initBase(date,  "MalariaStatus")
     .self$status <<- status
   }
 )
