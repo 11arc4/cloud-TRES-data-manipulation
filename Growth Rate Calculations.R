@@ -9,9 +9,10 @@ hatchsize = c()
 fledgesize = c()
 massgrowth =c()
 nest = c()
+whyfail =c()
 
 
-for (nestling in as.list(globalDataNest$nestlings)){
+for (nestling in as.list(globalData$nestlings)){
   growthrate <- nestling$calcGrowthRate()
   if (is.na(growthrate)){
     message("growthrate is NA for nestling ", nestling$nestlingCode)
@@ -21,7 +22,7 @@ for (nestling in as.list(globalDataNest$nestlings)){
   if(!is.na(growthrate)){
     message("made it")
     nestID <- nestling$fromNest$m_key
-    fromNest <- get(nestID, globalDataNest$nests)
+    fromNest <- get(nestID, globalData$nests)
     
     nestyear [ length(nestyear) + 1] <- fromNest$year
     hatchdate [ length(hatchdate) + 1] <- fromNest$hatchDate
@@ -30,6 +31,8 @@ for (nestling in as.list(globalDataNest$nestlings)){
     fledgesize [ length(fledgesize) + 1] <- fromNest$fledgeSize
     massgrowth [ length(massgrowth) + 1] <- growthrate
     nest [length(nest) + 1] <- nestID
+    whyfail [ length(whyfail) + 1] <- fromNest$reasonforFailure
+    
   }
   
 }
@@ -39,8 +42,9 @@ NstgGrowth <- cbind(as.integer(nestyear),
                     as.integer(hatchdate), 
                     as.integer(hatchsize), 
                     as.integer(fledgesize), 
-                    as.numeric(massgrowth))
-colnames(NstgGrowth) <- c("year", "nest", "hatchdate", "hatchsize", "fledgesize", "growthrate_mass")
+                    as.numeric(massgrowth), 
+                    as.character(whyfail))
+colnames(NstgGrowth) <- c("year", "nest", "hatchdate", "hatchsize", "fledgesize", "growthrate_mass", "reasonforfailure")
 
 #NICE THIS WORKS!
 
