@@ -345,6 +345,19 @@ YearsSeen$methods (
   addObservation = function (obs){
     .self$observations$addElement(obs)
 
+  },
+  `[` = function (x, i){
+    class(x) <- "list"
+    structure(x[i], class= "YearsSeen")
+  },
+  `==` = function (e1, e2){
+    e1$year == e1$year
+  }, 
+  `>` = function (e1, e2){
+    e1$year > e2$year
+  }, 
+  `<` = function (e1, e2){
+    e1$year < e2$year
   }
 )
 
