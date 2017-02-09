@@ -16,8 +16,9 @@ for (bird in as.list(globalData$birds)){
 
   
   if(bird$yearsSeen$length>1){
-   Seen <- sapply(bird$yearsSeen$buffer,"[[","year")
-   order(bird$yearsSeen$buffer, YearsSeen$year)
+   message("Sorting years")
+     #order(bird$yearsSeen$buffer[[1]], YearsSeen$year)
+   sort(bird$yearsSeen$buffer[[1]])
   }
   
   
