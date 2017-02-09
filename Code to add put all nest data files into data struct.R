@@ -24,7 +24,7 @@ for (j in 1:length(listfilenames)){
   message("****added", year, " to the global database")
 }
 #save your nest global data somewhere so that you can access it again if necessary.... You may well need it if your stuff breaks...
-globalDataNest<- globalData
+globalDataNest<- globalData$copy
 #as.list(globalData$nests)
 #ls(all.names=TRUE, globalData$nests)
 #pulls out all the stuff in nest_hash (the actual stuff not just the names)
