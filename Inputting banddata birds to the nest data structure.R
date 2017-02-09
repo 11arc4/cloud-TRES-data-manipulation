@@ -43,7 +43,7 @@ band<- band[which(!is.na(band$Age) & !is.na(band$Sex)), ]
 for ( i in 1: length(band$BandID)){
   bandID <- band$BandID[i]  #If this entry is a nestling, then we check to see if it exists in the hash
   if (band$Age[i]=="L" | band$Age[i]== "HY"){
-    if (!exists(bandID, globalData$nestlings)){
+    if (!exists(bandID, globalData$birds)){
       #if the nestling wasn't already made then we need to make this nestling
       #and attach it to the appropriate nest if we can
       #also need to create an associated tree swallow and link it
