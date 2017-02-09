@@ -1,7 +1,6 @@
 #Fixing ages, fixing sex where appropriate and adding return status
 
 library(plyr)
-library(rlist)
 exactAges <- c("HY", "SY", "3Y", "4Y", "5Y", "6Y", "7Y", "8Y", "9Y", "10Y", "11Y" )
 estimateAges <- c("AHY", "ASY", "A3Y", "A4Y", "A5Y", "A6Y", "A7Y", "A8Y", "A9Y", "A10Y", "A11Y")
 
@@ -14,10 +13,12 @@ for (bird in as.list(globalData$birds)){
   #that list and it will all be wonderfully sorted and I will have an easy way
   #to assign return and age)
   #NEED TO SORT THIS YEARS SEEN LIST BY YEAR! Probably just fine as is but should double check
-  bird$yearsSeen$as.list %>>% list.sort(year)
-  list.order(bird$yearsSeen$as.list(), year)
-  #Neither of these currently work
+
   
+  if(bird$yearsSeen$length>1){
+   Seen <- sapply(bird$yearsSeen$buffer,"[[","year")
+   order(bird$yearsSeen$buffer, YearsSeen$year)
+  }
   
   
   #create a vector of sexes 
