@@ -34,7 +34,7 @@ band$Ninth.Primary[which(band$Ninth.Primary==0)] <- NA
 #There are a couple of entries in the banddata where age and sex are both NA.
 #Those entries appear to be lost bands and therefore unusable so we need to
 #remove them from the band data
-band<- band[which(!is.na(band$Age)), ]
+band<- band[which(!is.na(band$Age) & !is.na(band$Sex)), ]
 
 #here we want to create TreeSwallows as needed, or add in new observations IF
 #the date on those observations doesn't match up with one that already exists
@@ -48,11 +48,18 @@ for ( i in 1: length(band$BandID)){
       #and attach it to the appropriate nest if we can
       #also need to create an associated tree swallow and link it
       fromNest <- paste (as.character(band$Year[i]), band$BoxID[i], sep="-") 
-      bird <- TreeSwallow(bandID=bandID, hatchnest=EnvPointer(m_key=fromNest, m_hash=globalData$nests) )
-      nestling <- Nestling( nestlingTRES = EnvPointer(m_key=bandID, m_hash=globalData$birds), 
-                            fromNest = EnvPointer(m_key=fromNest, m_hash=globalData$nests))
+      bird <- TreeSwallow(bandID=bandID, hatchnest= EnvPointer(fromNest, globalData$nests) )
+      yearentry <- YearsSeen(year= band$Year[i],
+                             age= "HY",
+                             sex = "U",
+                             hatchNest = EnvPointer(fromNest, globalData$nests) )
+      bird$addYearSeen(yearentry)
+
+      nestling <- Nestling( nestlingTRES = EnvPointer(bandID, globalData$birds), 
+                            fromNest = EnvPointer(fromNest, globalData$nests))
       globalData$insertBird(bird = bird)
       globalData$insertNestling(nestling)
+      message ("added a nestling", bandID, "from", fromNest, sep= " ")
     }
     #if the nestling was made theres no need to do anything
   } else {
@@ -67,13 +74,19 @@ for ( i in 1: length(band$BandID)){
       date <- band$Date[i]
       if (length(bird$yearsSeen$as.list())>0){
         for (year in bird$yearsSeen$as.list()){
+          if (length(year$year)>1){
+            message("Year entry",  "has year field longer than one. Check why.", sep= " ")
+          }
           if(year$year==band$Year[i]){
             yearsEqual= yearsEqual + 1 #my way of checking to see if we've matched a year....
-            if( !is.null(year$observations$as.list()[[1]])){
+            
+            if( !is.na(date) & !is.null(year$observations$as.list()[[1]])){
               for (obs in year$observations$as.list()){
-                if (obs$date$equal(date)){
+                if (!is.na(obs$date)) {
+                  if (date == obs$date){
                   datesEqual= 1
-                } 
+                  } 
+                }
               }
               if(datesEqual==0){
                 #if none of the dates match up then we have a new observation of this bird and should go and add it
@@ -87,7 +100,8 @@ for ( i in 1: length(band$BandID)){
                 bird$addYearSeen(year)
                 
               }
-            } else {
+            }
+             else {
               #If there are not observations for this bird this year, then we should probably add them!
               Obs <- BodyMeasurements(date=date,
                                       wingChord = band$Wing.Chord[i], 
@@ -102,9 +116,9 @@ for ( i in 1: length(band$BandID)){
           }
         }
         if (yearsEqual==0){
-          year <- YearsSeen(year=band$Year,
-                            age=band$Age,
-                            sex= band$Sex)
+          year <- YearsSeen(year=band$Year[i],
+                            age=band$Age[i],
+                            sex= band$Sex[i])
           Obs <- BodyMeasurements(date=date,
                                   wingChord = band$Wing.Chord[i], 
                                   ninthPrimary = band$Ninth.Primary[i],
@@ -112,7 +126,7 @@ for ( i in 1: length(band$BandID)){
                                   tarsus = band$Tarsus[i] )
           year$addObservation(Obs)
           bird$addYearSeen(year)
-          
+          message("added an observation to ",  bandID, "from", band$Year[i], sep= " ")
           
         }
       }
@@ -137,11 +151,11 @@ for ( i in 1: length(band$BandID)){
       year$addObservation(Obs)      
       bird$addYearSeen(year)
       globalData$insertBird( bird)
-      
+      message("added a floater bird", bandID, "from", year$year, sep=" ")
     }
   }
 }
-AllglobalData <- globalData
+AllglobalData <- globalData$copy
 
 #Appears to be a very bad way to store this data-- takes forever so not really usable
 #saveRDS(globalData, "AllGlobalData.rds")
