@@ -33,8 +33,12 @@ useableList$methods (
   as.list = function() {
     b <- buffer[1: length]
     return(b)
+  },
+  replaceList = function(l) {
+    length <<- length(l)
+    capacity <<- .self$length
+    buffer <<- l
   }
-
 )
 
 
@@ -352,10 +356,10 @@ YearsSeen$methods (
   },
   `==` = function (e1, e2){
     e1$year == e1$year
-  }, 
+  },
   `>` = function (e1, e2){
     e1$year > e2$year
-  }, 
+  },
   `<` = function (e1, e2){
     e1$year < e2$year
   }
@@ -380,7 +384,7 @@ TreeSwallow$methods(
                         sex=NA_character_,
                         hatchnest = EnvPointer(),
                         #nestList=useableList(4),
-                        #observations = useableList (4), 
+                        #observations = useableList (4),
                         yearsSeen =useableList (1)
 
                         ) {
@@ -398,10 +402,16 @@ TreeSwallow$methods(
   },
   #Also need a function to add a new observation of the TreeSwallow
   addObservation = function(obs) {
-    .self$observations$addElement(obs) 
-  }, 
+    .self$observations$addElement(obs)
+  },
   addYearSeen = function (yearEntry) {
     .self$yearsSeen$addElement(yearEntry)
+  },
+  sortYears = function() {
+    y <- .self$yearsSeen$as.list()
+    l <- y[order(sapply(y, function(x) {
+      x$year
+    }))] # ascending sort
   }
 
 )
@@ -418,14 +428,14 @@ Nestling <- setRefClass("Nestling",
                           fromNest = "EnvPointer",
                           growthRateMass = "numeric"
                         )
-                        
+
 )
 
 Nestling$methods(
   initialize = function (nestlingCode=NA_character_,
                          nestlingTRES=EnvPointer(NA_character_, globalData$birds),
-                         fromNest, 
-                         growthRateMass = NA_real_, 
+                         fromNest,
+                         growthRateMass = NA_real_,
                          measurements= useableList(2)) {
 
     .self$fromNest <<- fromNest

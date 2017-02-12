@@ -16,14 +16,76 @@
 #' @export
 #'
 #' @examples
-InputNestDatatoClassStructure <- function (nestdata, globalData){
+InputNestDatatoClassStructure <- function (nestdata, globalData) {
+
+
+  buildMassMeasurement <- function(nestlingID, day, mass) {
+    # doing nothing for now...need to build and return the measurement
+    message("n", nestlingID, " d", day, " mass ", mass)
+  }
+  buildWingMeasurement <- function(nestlingID, day, wing) {
+    # doing nothing for now...need to build and return the measurement
+    message("w", nestlingID, " d", day, " wing ", wing)
+  }
+  buildTarsusMeasurement <- function(nestlingID, day, tarsus) {
+    # doing nothing for now...need to build and return the measurement
+    message("n", nestlingID, " d", day, " tarsus ", tarsus)
+  }
+  buildNestling <- function(nestlingID, bandID=NA_character_) {
+    # doing nothing for now...need to build and return the measurement
+  }
+
+
+  keysAndCallbacks <- function (data, id) {
+    bandID <- paste("band", id, sep = ".")
+    callbacks <- list(
+      c("mass", buildMassMeasurement),
+      c("tarsus", buildTarsusMeasurement),
+      c("wing", buildWingMeasurement)
+    )
+    days <- 1:18
+    measurementKeys <- lapply(days, function(d) {
+      l <- sapply(callbacks, function(cb) {
+        key1 <- paste(cb[1], ".d", d, ".", id, sep = "")
+        key2 <- paste(cb[1], d, id, sep = ".")
+        f <- function(value) {
+          cb[2](id, d, value)
+        }
+        list(c(key1, f), c(key2, f))
+      })
+
+      l
+    })
+
+    nestlingCallbacks <- append(measurementKeys, list(c(bandID, function(id) {
+        # build nestling with this band ID..
+        })), after=0 )
+    keys <- unlist(sapply(nestlingCallbacks, function(x) {x[1]}))
+    #message(keys)
+    present <- keys %in% colnames(data)
+    #message(present)
+    if (any(present)) {
+      callbacks <- unlist(sapply(nestlingCallbacks, function(x) {x[2]}))
+      return(list(keys[present], callbacks[present]))
+    }
+    c()
+  }
+
+  nestlingCallbacks <- list()
+  for (nestlingID in 1:10) {
+    cb <- keysAndCallbacks(nestdata, nestlingID)
+    if (0 != length(cb)) {
+      nestlingCallbacks <- append(nestlingCallbacks, cb)
+    }
+  }
+
   year<- nestdata$Year[1]
   message("starting year ", year)
   for (i in 1: length(nestdata$Year)){
     #message("  begin nest ", i)
     nestID <- paste (as.character(year), nestdata$BoxID[i], sep="-")  #This is the unique
     nest <- Nest(year=year, siteID=as.character(nestdata$siteID[i]) )
-    
+
     #Need to create (or append) sightings of the parents as TreeSwallows
     parentAttrib <- list(c("FemaleID", "F"), c("MaleID", "M"))
     for (attrib in parentAttrib) {
@@ -31,13 +93,13 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
       sex <- attrib[2]
       if (! is.na(birdID)) {
         #message("   start ", attrib[1], " ", birdID)
-        
+
         # look for this bird is the globalData
         if (!exists(birdID, globalData$birds)) {
           # this is the first time we have seen this female...buid a TreeSwallow for it...
           bird <- TreeSwallow(bandID=birdID, sex=sex)
           globalData$insertBird(bird)
-          
+
         } else {
           bird <- globalData$findBird(birdID)
           # we saw this one before...check that the sex is the same as the last
@@ -52,7 +114,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
             }
           }
         }
-        
+
         #bird$addNest(nest)
         age <- as.character(nestdata[[i, paste(sex, "Age", sep=".")]])
         yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
@@ -60,14 +122,14 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
                                sex= sex,
                                returnstatus=NA_character_,
                                hatchNest=EnvPointer(NA_character_, globalData$nests)
-                               
+
         )
         yearentry$addNest (EnvPointer(nestID, globalData$nests))
-        
+
         #If this isn't NA, then we have SOME measurements, and need to add them as an observation
         dayMeasured <-  nestdata[[i, paste(sex, "Day.measured", sep=".")]]
         if(!is.na(dayMeasured)){
-          
+
           bodymetrics <- BodyMeasurements(date=as.character(dayMeasured)
                                           )
           for (metric in list(c("Wing..mm.", "wingChord"), c("Nineth.Primary..mm.", "ninthPrimary"),
@@ -81,7 +143,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
             }
           }
           yearentry$addObservation(bodymetrics)
-          
+
         }
         k <- paste(sex, "Malaria.Status", sep=".")
         if(exists(k, nestdata)){
@@ -92,28 +154,24 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
                                      status=m)
             #bird$addObservation(malaria)
             yearentry$addObservation(malaria)
-            
+
           }
         }
-        
-        
-        
-        
-        
+
         nest[[attrib[1]]] <- EnvPointer(birdID, globalData$birds)
         bird$addYearSeen(yearentry)
-        
+
       } #close if (!is.na(birdID))
     }
     # call a method on the nest to populate the rest of the data
     #nest$populateMesaurements(nestdata, rownumber)
-    
+
     #add all the important dates and breeding success measurements to the nest
     nest$addDatesandSuccessNestdata(nest, nestdata, i )
-    
-    
+
+
     n_measures <- c("mass.d", "tarsus.d", "wing.d")
-    
+
     N_obs <- c( "mass",
                 "tarsus",
                 "ninthPrimary",
@@ -137,7 +195,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
                                           chicknumber=j,
                                           rownumber=i,
                                           dataSingleton = globalData)
-      
+
       #sometimes nestlings will exist as null nestlings if there aren't columns 1-10
       #in the nest data so we need to double check to make sure that a nestling
       #actually has been created.
@@ -157,7 +215,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
               }
             }
           }
-          
+
           #Want to add all the different measurements from that day together and
           #THEN check to see if there are any measurements made, and add it onto
           #the Nestling$measurements
@@ -188,5 +246,4 @@ InputNestDatatoClassStructure <- function (nestdata, globalData){
           #  " obs:", keptObs, " of ", builtObservations)
     globalData$insertNest(nestID= nestID, Nest=nest)
   }
-}  
-  
+}
