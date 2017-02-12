@@ -27,12 +27,14 @@ BuildNestlingCallbacks$methods(
         list(c(k1, c[2]),
              c(k2, c[2]))
       })
-      keys <- unlist(sapply(d, function(x) { x[1] }))
+      keys <- sapply(d, function(x) { x[[1]] })
       #message("keys: ", keys)
       contained <- keys %in% colnames
       if (any(contained)) {
         columns <<- append(columns, keys[contained])
-        measNames <- unlist(sapply(d, function(x) { x[2] }))
+        measNames <- sapply(d, function(x) { x[[2]] })
+        # could use column indices rather than names?  Might be faster
+        #  indices <= match(keys[contained], colnames)
         days <<- append(days, list(list(day,
                                         keys[contained],
                                         measNames[contained])))
