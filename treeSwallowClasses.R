@@ -184,7 +184,7 @@ GlobalBirdData$methods(
 )
 
 
-#globalData <- GlobalBirdData()
+globalData <- GlobalBirdData()
 
 getGlobalSingleton <- function() {
   globalData

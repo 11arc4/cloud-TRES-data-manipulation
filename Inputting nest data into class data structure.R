@@ -1,3 +1,57 @@
+library(assertthat)
+
+BuildNestlingCallbacks <- setRefClass("BuildNestlingCallbacks",
+                                      fields = list(
+                                        "id" = "integer", # nestling ID
+                                        "bandID" = "character",
+                                        "columns" = "vector", # all the data columns which exist for this nestling
+                                        "days" = "list" # (dayNumber, vector(col1, col2, ..), vector(measName1, name2, ..))
+                                      ))
+BuildNestlingCallbacks$methods(
+  initialize = function(nestlingId, nestData) {
+    id <<- nestlingId
+    bandID <<- paste("band", nestlingId, sep = ".")
+    columns <<- c(bandID)
+    days <<- list()
+    callbacks <- list(
+      #(dataframe key, observationKey)
+      c("mass", "mass"),
+      c("tarsus", "tarsus"),
+      c("wing", "ninthPrimary")
+    )
+    colnames <- colnames(nestData)
+    for (day in 1:18) {
+      d <- sapply(callbacks, function(c) {
+        k1 <- paste(c[1], ".d", day, ".", nestlingId, sep="")
+        k2 <- paste(c[1], day, nestlingId, sep=".")
+        list(c(k1, c[2]),
+             c(k2, c[2]))
+      })
+      keys <- unlist(sapply(d, function(x) { x[1] }))
+      #message("keys: ", keys)
+      contained <- keys %in% colnames
+      if (any(contained)) {
+        columns <<- append(columns, keys[contained])
+        measNames <- unlist(sapply(d, function(x) { x[2] }))
+        days <<- append(days, list(list(day,
+                                        keys[contained],
+                                        measNames[contained])))
+      }
+    }
+    columns <<- columns[columns %in% colnames]
+    #message("columns: ", columns)
+  },
+  empty = function() {
+      return(0 == length(columns))
+  },
+  band = function() {
+    return(bandID)
+  },
+  dayList = function() {
+    return(days)
+  }
+)
+
 
 #' InputNestDatatoClassStructure
 #'Runs through the nest data, creating Nests, TreeSwallows (for all nestlings
@@ -18,68 +72,15 @@
 #' @examples
 InputNestDatatoClassStructure <- function (nestdata, globalData) {
 
-
-  buildMassMeasurement <- function(nestlingID, day, mass) {
-    # doing nothing for now...need to build and return the measurement
-    message("n", nestlingID, " d", day, " mass ", mass)
-  }
-  buildWingMeasurement <- function(nestlingID, day, wing) {
-    # doing nothing for now...need to build and return the measurement
-    message("w", nestlingID, " d", day, " wing ", wing)
-  }
-  buildTarsusMeasurement <- function(nestlingID, day, tarsus) {
-    # doing nothing for now...need to build and return the measurement
-    message("n", nestlingID, " d", day, " tarsus ", tarsus)
-  }
-  buildNestling <- function(nestlingID, bandID=NA_character_) {
-    # doing nothing for now...need to build and return the measurement
-  }
-
-
-  keysAndCallbacks <- function (data, id) {
-    bandID <- paste("band", id, sep = ".")
-    callbacks <- list(
-      c("mass", buildMassMeasurement),
-      c("tarsus", buildTarsusMeasurement),
-      c("wing", buildWingMeasurement)
-    )
-    days <- 1:18
-    measurementKeys <- lapply(days, function(d) {
-      l <- sapply(callbacks, function(cb) {
-        key1 <- paste(cb[1], ".d", d, ".", id, sep = "")
-        key2 <- paste(cb[1], d, id, sep = ".")
-        f <- function(value) {
-          cb[2](id, d, value)
-        }
-        list(c(key1, f), c(key2, f))
-      })
-
-      l
-    })
-
-    nestlingCallbacks <- append(measurementKeys, list(c(bandID, function(id) {
-        # build nestling with this band ID..
-        })), after=0 )
-    keys <- unlist(sapply(nestlingCallbacks, function(x) {x[1]}))
-    #message(keys)
-    present <- keys %in% colnames(data)
-    #message(present)
-    if (any(present)) {
-      callbacks <- unlist(sapply(nestlingCallbacks, function(x) {x[2]}))
-      return(list(keys[present], callbacks[present]))
-    }
-    c()
-  }
-
-  nestlingCallbacks <- list()
-  for (nestlingID in 1:10) {
-    cb <- keysAndCallbacks(nestdata, nestlingID)
-    if (0 != length(cb)) {
-      nestlingCallbacks <- append(nestlingCallbacks, cb)
+  nestlings <- c()
+  for (i in 1:12) {
+    n <- BuildNestlingCallbacks(i, nestdata)
+    if (! n$empty()) {
+      nestlings <- append(nestlings, c(n))
     }
   }
 
-  year<- nestdata$Year[1]
+  year <- nestdata$Year[1]
   message("starting year ", year)
   for (i in 1: length(nestdata$Year)){
     #message("  begin nest ", i)
@@ -170,74 +171,45 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
     nest$addDatesandSuccessNestdata(nest, nestdata, i )
 
 
-    n_measures <- c("mass.d", "tarsus.d", "wing.d")
-
-    N_obs <- c( "mass",
-                "tarsus",
-                "ninthPrimary",
-                "age",
-                "nestling"
-    )
-    #Need to make all the nestlings, and also need to add them to the data
-    #  I think that it should be faster to have a vector of nestling keys
-    #  c("band.1", "band.2", ... ) - and subset the dataframe to extract them all,
-    #  filtering out the NAs...then go get all the observations for the non-NA nestlings
-    #  the same way (i.e., via a subsetting action rather than a loop)
-    #  When we get the list back from the subset, we ought to be able to 'apply' over
-    #  the list - to build all the observations as well.
-    builtNestlings <- 0
-    keptNestlings <- 0
-    builtObservations <- 0
-    keptObs <- 0
-    for (j in 1:10){
-      #This creates the Nestling, and creates an associated TreeSwallow if applicable
-      nestling<- globalData$buildNestling(nestdata=nestdata,
-                                          chicknumber=j,
-                                          rownumber=i,
-                                          dataSingleton = globalData)
-
-      #sometimes nestlings will exist as null nestlings if there aren't columns 1-10
-      #in the nest data so we need to double check to make sure that a nestling
-      #actually has been created.
-      if (!is.null(nestling)){
-        builtNestlings <- builtNestlings + 1
-        for (day in 1:18){
-          nestlingObs <- NestlingMeasurements(age=day)
-          h=0
-          for (m in 1: length(n_measures)){
-            measurement <- paste( n_measures[m], day, ".", j, sep="")
-            if(exists( measurement, nestdata)){
-              meas <- nestdata[[i, measurement]]
-              if (!is.na (meas)){
-                h=h+1
-                nestlingObs[[N_obs[m]]]<- as.numeric(meas)
-                builtObservations <- builtObservations + 1
+    # build the nestlings and nestling observations...
+    for (n in nestlings) {
+      # first, check if there is any data for this nestling (are all the columns NA?)
+      keys <- n$columns
+      nestlingData <- nestdata[i, keys]
+      if (any(!is.na(nestlingData))) {
+        # there is data here...
+        #This creates the Nestling, and creates an associated TreeSwallow if applicable
+        nestling <- globalData$buildNestling(
+          nestdata = nestdata,
+          chicknumber = n$id,
+          rownumber = i,
+          dataSingleton = globalData
+        )
+        tres <- nestdata[i, n$bandID]
+        if (! is.na(tres)) {
+          # FIXME:  I guess we add a pointer?
+          # this nestling is banded...need to do something about it.
+        }
+        # now build any observations for the nestling..
+        for (d in n$dayList()) {
+          day <- d[[1]]
+          # are there any values which aren't NA?
+          meas <- nestdata[i, d[[2]]]
+          if (any(!is.na(meas))) {
+            # yep...at least one..go ahead and build.
+            nestlingObs <- NestlingMeasurements(age = day)
+            mapply(function(measName, data) {
+              if (!is.na(data)) {
+                nestlingObs[[measName]] <- data
               }
-            }
-          }
-
-          #Want to add all the different measurements from that day together and
-          #THEN check to see if there are any measurements made, and add it onto
-          #the Nestling$measurements
-          if(h>0){
+            }, d[[3]], meas)
             nestling$addObservation(nestlingObs)
           }
         }
-        if ( nestling$nestlingTRES$isNull() |
-             length(nestling$measurements$as.list()) == 0 ) {
-          #if the nestling wasn't banded and we know nothing about them
-          next
-        } else {
-          #we know somehting about them and should put them into the nest and the nestlings database
-          #add the Nestling to the Nest
-          nest$addNestling(EnvPointer(nestling$nestlingCode, globalData$nestlings))
-          #add the Nestling to the nestlings hash
-          globalData$insertNestling(nestling)
-          keptNestlings <- keptNestlings + 1
-          keptObs <- keptObs + h
-        }
       }
     }
+
+
     # HGC:  I added some counts to see how many things we were building vs. how many
     #  we were keeping...at least for the year 1988, we keep very little.
     #  this can probably be faster, if we filter better (even if the processing for the
