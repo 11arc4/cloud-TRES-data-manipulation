@@ -34,9 +34,9 @@ BuildNestlingCallbacks$methods(
         columns <<- append(columns, keys[contained])
         measNames <- sapply(d, function(x) { x[[2]] })
         # could use column indices rather than names?  Might be faster
-        #  indices <= match(keys[contained], colnames)
+        indices <- match(keys[contained], colnames)
         days <<- append(days, list(list(day,
-                                        keys[contained],
+                                        indices, #keys[contained],
                                         measNames[contained])))
       }
     }
