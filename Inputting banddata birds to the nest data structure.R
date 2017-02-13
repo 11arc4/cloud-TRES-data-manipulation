@@ -34,7 +34,10 @@ band$Ninth.Primary[which(band$Ninth.Primary==0)] <- NA
 #There are a couple of entries in the banddata where age and sex are both NA.
 #Those entries appear to be lost bands and therefore unusable so we need to
 #remove them from the band data
-band<- band[which(!is.na(band$Age) & !is.na(band$Sex)), ]
+band<- band[which(!is.na(band$Age) & !is.na(band$Sex) & !is.na(band$Year) & !is.na(band$BandID)), ]
+
+#Some of the band IDs are actually color codes--want to remove those from the data
+band <- band[which(nchar(band$BandID)>5), ]
 
 #here we want to create TreeSwallows as needed, or add in new observations IF
 #the date on those observations doesn't match up with one that already exists
@@ -59,21 +62,41 @@ for ( i in 1: length(band$BandID)){
                             fromNest = EnvPointer(fromNest, globalData$nests))
       globalData$insertBird(bird = bird)
       globalData$insertNestling(nestling)
-      message ("added a nestling", bandID, "from", fromNest, sep= " ")
+      message ("added a nestling ", bandID, " from ", fromNest, sep= " ")
     } else {
       bird <- get(bandID, globalData$birds)
-      if(is.na(bird$hatchnest$m_key)){
-        nestcode <- paste( band$year, "-", band$BoxID)
-        bird$hatchnest <- EnvPointer(nestcode, globalData$nests)
-        year <- YearsSeen(year=band$year,
-                          age="HY",
-                          sex= "U",
-                          returnstatus="Nestling",
-                          hatchNest=EnvPointer(nestcode, globalData$nests))
+      if (bird$yearsSeen$length==0) {
+        if(is.na(bird$hatchnest$m_key)){
+          nestcode <- paste( band$Year[i], "-", band$BoxID[i])
+          bird$hatchnest <- EnvPointer(nestcode, globalData$nests)
+          year <- YearsSeen(year=band$Year[i],
+                            age="HY",
+                            sex= "U",
+                            returnstatus="Nestling",
+                            hatchNest=EnvPointer(nestcode, globalData$nests))
+          
+          bird$addYearSeen(year)
+        }
+      } else {
+        yseen <- bird$viewYears()
+        if(band$Year[i]!=yseen[1] ){
+          
+          if(is.na(bird$hatchnest$m_key)){
+            nestcode <- paste( band$Year[i], "-", band$BoxID[i])
+            bird$hatchnest <- EnvPointer(nestcode, globalData$nests)
+            year <- YearsSeen(year=band$Year[i],
+                              age="HY",
+                              sex= "U",
+                              returnstatus="Nestling",
+                              hatchNest=EnvPointer(nestcode, globalData$nests))
+            
+            bird$addYearSeen(year)
+            #Can't add neslting Measurements because unknown how old they are
+          } 
+        }
         
-        bird$addYearSeen(year)
-        #Can't add neslting Measurements because unknown how old they are
       }
+      
     }
     #if the nestling was made theres no need to do anything
   } else {
@@ -89,9 +112,6 @@ for ( i in 1: length(band$BandID)){
       date <- band$Date[i]
       if (length(bird$yearsSeen$as.list())>0){
         for (year in bird$yearsSeen$as.list()){
-          if (length(year$year)>1){
-            message("Year entry",  "has year field longer than one. Check why.", sep= " ")
-          }
           if(year$year==band$Year[i]){
             yearsEqual= yearsEqual + 1 #my way of checking to see if we've matched a year....
             
@@ -113,7 +133,6 @@ for ( i in 1: length(band$BandID)){
                 
                 year$addObservation (Obs) 
                 bird$addYearSeen(year)
-                
               } 
             }
           }
@@ -133,7 +152,7 @@ for ( i in 1: length(band$BandID)){
           
         }
       }
-      } else {
+    } else {
       
       #The bird is an adult and hasn't been seen in a nest
       # (ie it's a floater)
@@ -156,6 +175,5 @@ for ( i in 1: length(band$BandID)){
     }
   }
 }
+
 AllglobalData <- globalData$copy
-
-
