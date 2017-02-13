@@ -17,11 +17,10 @@ for (bird in as.list(globalData$birds)){
   
   if(bird$yearsSeen$length>1){
    message("Sorting years")
-     #order(bird$yearsSeen$buffer[[1]], YearsSeen$year)
-   sort(bird$yearsSeen$buffer[[1]])
+   l2 <- bird$yearsSeen$as.list()
+   l3 <- l2[order(sapply(l2, function(v) { v$year} ))]
+   bird$yearsSeen$replaceList(l3)
   }
-  
-  
   #create a vector of sexes 
   sexes <- rep(NA_character_, 20)
   #not sure if I need to reinput them all (may just do this automatically because RC is mutable)
@@ -45,6 +44,9 @@ for (bird in as.list(globalData$birds)){
           }
           if(year$age == "A2Y"){
             year$age <- "ASY"
+          }
+          if(length(year$age)==0){
+            year$age <- "AHY"
           }
         } else {
           message("Bird", bird$bandID, "from", year$year,  "has unknown age. Entered here as AHY")
