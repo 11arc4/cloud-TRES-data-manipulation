@@ -408,6 +408,12 @@ TreeSwallow$methods(
     l <- y[order(sapply(y, function(x) {
       x$year
     }))] # ascending sort
+  }, 
+  viewYears = function () {
+    y <- .self$yearsSeen$as.list()
+    sapply(y, function(x) {
+      x$year
+    })
   }
 
 )
