@@ -43,7 +43,7 @@ band<- band[which(!is.na(band$Age) & !is.na(band$Sex)), ]
 for ( i in 1: length(band$BandID)){
   bandID <- band$BandID[i]  #If this entry is a nestling, then we check to see if it exists in the hash
   if (band$Age[i]=="L" | band$Age[i]== "HY"){
-    if (!exists(bandID, globalData$birds)){
+    if (!exists(bandID, globalData$birds) ){
       #if the nestling wasn't already made then we need to make this nestling
       #and attach it to the appropriate nest if we can
       #also need to create an associated tree swallow and link it
@@ -54,15 +54,30 @@ for ( i in 1: length(band$BandID)){
                              sex = "U",
                              hatchNest = EnvPointer(fromNest, globalData$nests) )
       bird$addYearSeen(yearentry)
-
+      
       nestling <- Nestling( nestlingTRES = EnvPointer(bandID, globalData$birds), 
                             fromNest = EnvPointer(fromNest, globalData$nests))
       globalData$insertBird(bird = bird)
       globalData$insertNestling(nestling)
       message ("added a nestling", bandID, "from", fromNest, sep= " ")
+    } else {
+      bird <- get(bandID, globalData$birds)
+      if(is.na(bird$hatchnest$m_key)){
+        nestcode <- paste( band$year, "-", band$BoxID)
+        bird$hatchnest <- EnvPointer(nestcode, globalData$nests)
+        year <- YearsSeen(year=band$year,
+                          age="HY",
+                          sex= "U",
+                          returnstatus="Nestling",
+                          hatchNest=EnvPointer(nestcode, globalData$nests))
+        
+        bird$addYearSeen(year)
+        #Can't add neslting Measurements because unknown how old they are
+      }
     }
     #if the nestling was made theres no need to do anything
   } else {
+    #This is an adult bird
     if (exists (bandID, globalData$birds)){
       bird <- globalData$findBird(bandID)
       #check to see whether this is a new observation of the bird or not. If it's
@@ -84,7 +99,7 @@ for ( i in 1: length(band$BandID)){
               for (obs in year$observations$as.list()){
                 if (!is.na(obs$date)) {
                   if (date == obs$date){
-                  datesEqual= 1
+                    datesEqual= 1
                   } 
                 }
               }
@@ -99,19 +114,7 @@ for ( i in 1: length(band$BandID)){
                 year$addObservation (Obs) 
                 bird$addYearSeen(year)
                 
-              }
-            }
-             else {
-              #If there are not observations for this bird this year, then we should probably add them!
-              Obs <- BodyMeasurements(date=date,
-                                      wingChord = band$Wing.Chord[i], 
-                                      ninthPrimary = band$Ninth.Primary[i],
-                                      mass = band$Mass [i], 
-                                      tarsus = band$Tarsus[i] )
-              
-              year$addObservation (Obs)  
-              bird$addYearSeen(year)
-              
+              } 
             }
           }
         }
@@ -130,9 +133,7 @@ for ( i in 1: length(band$BandID)){
           
         }
       }
-      
-      
-    } else {
+      } else {
       
       #The bird is an adult and hasn't been seen in a nest
       # (ie it's a floater)
@@ -157,8 +158,4 @@ for ( i in 1: length(band$BandID)){
 }
 AllglobalData <- globalData$copy
 
-#Appears to be a very bad way to store this data-- takes forever so not really usable
-#saveRDS(globalData, "AllGlobalData.rds")
-#To reload this 
-#globalData <- readRDS("AllGlobalData.rds")
 
