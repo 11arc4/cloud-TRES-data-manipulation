@@ -130,55 +130,51 @@ GlobalBirdData$methods(
   buildNestling = function(nestdata,
                            chicknumber,
                            rownumber,
-                           dataSingleton=globalData) {
+                           dataSingleton=globalData, 
+                           bandID=NA_character_) {
     nestID <-
-      .self$buildNestID(year = nestdata$Year[1], boxID = nestdata$BoxID[rownumber])  #This is the unique
+      .self$buildNestID(year = nestdata$Year[rownumber], boxID = nestdata$BoxID[rownumber])  #This is the unique
     nestlingCode <-
       paste(nestID, "nestling", as.character(chicknumber))
     # check the nestdata to see if there is a bandID for this bird...
-    bandIdKey <- paste("band", as.character(chicknumber), sep = ".")
-    if(exists(bandIdKey, nestdata)){
-
-      band <- as.character(nestdata[[bandIdKey]][rownumber])
-      #^this is throwing out null for band.1, rownumber 229. I don't understand why
-
-      if (!is.na(band)) {
-        # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
-        #since it's a nestling you won't already have a TreeSwallow for this bird to go right ahead and make one
-
-
-        newBird = TreeSwallow(bandID = band,
-                              hatchnest = EnvPointer(id = nestID, hash = dataSingleton$nests))
-        year <- YearsSeen(year=nestdata$Year[rownumber],
-                          hatchNest = EnvPointer(id = nestID, hash = dataSingleton$nests),
-                          sex= "U",
-                          age= "HY")
-        newBird$addYearSeen(year)
-
-        dataSingleton$insertBird(newBird)
-
-        # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
-        birdPtr = EnvPointer(id = band, hash = .self$birds)
-
-
-        chick <-
-          Nestling(
-            fromNest = EnvPointer(id = nestID, hash = .self$nests),
-            nestlingCode = nestlingCode,
-            nestlingTRES=birdPtr)
-
-        return(chick)
-      } else {
-        chick <-
-          Nestling(
-            fromNest = EnvPointer(id = nestID, hash = .self$nests),
-            nestlingCode = nestlingCode
-          )
-
-        return(chick)
-      }
+    
+    if (!is.na(bandID)) {
+      # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
+      #since it's a nestling you won't already have a TreeSwallow for this bird to go right ahead and make one
+      
+      
+      newBird = TreeSwallow(bandID = bandID,
+                            hatchnest = EnvPointer(id = nestID, hash = dataSingleton$nests))
+      year <- YearsSeen(year=nestdata$Year[rownumber],
+                        hatchNest = EnvPointer(id = nestID, hash = dataSingleton$nests),
+                        sex= "U",
+                        age= "HY")
+      newBird$addYearSeen(year)
+      
+      dataSingleton$insertBird(newBird)
+      
+      # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
+      birdPtr = EnvPointer(id = bandID, hash = .self$birds)
+      
+      
+      chick <-
+        Nestling(
+          fromNest = EnvPointer(id = nestID, hash = .self$nests),
+          nestlingCode = nestlingCode,
+          nestlingTRES=birdPtr)
+      
+      return(chick)
+    } else {
+      chick <-
+        Nestling(
+          fromNest = EnvPointer(id = nestID, hash = .self$nests),
+          nestlingCode = nestlingCode
+        )
+      
+      return(chick)
     }
   }
+  
 
 
 )
@@ -500,6 +496,59 @@ Nestling$methods(
   }
 )
 
+BuildNestlingCallbacks <- setRefClass("BuildNestlingCallbacks",
+                                      fields = list(
+                                        "id" = "integer", # nestling ID
+                                        "bandID" = "character",
+                                        "columns" = "vector", # all the data columns which exist for this nestling
+                                        "days" = "list" # (dayNumber, vector(col1, col2, ..), vector(measName1, name2, ..))
+                                      ))
+BuildNestlingCallbacks$methods(
+  initialize = function(nestlingId, nestData) {
+    id <<- nestlingId
+    bandID <<- paste("band", nestlingId, sep = ".")
+    columns <<- c(bandID)
+    days <<- list()
+    callbacks <- list(
+      #(dataframe key, observationKey)
+      c("mass", "mass"),
+      c("tarsus", "tarsus"),
+      c("wing", "ninthPrimary")
+    )
+    colnames <- colnames(nestData)
+    for (day in 1:18) {
+      d <- sapply(callbacks, function(c) {
+        k1 <- paste(c[1], ".d", day, ".", nestlingId, sep="")
+        k2 <- paste(c[1], day, nestlingId, sep=".")
+        list(c(k1, c[2]),
+             c(k2, c[2]))
+      })
+      keys <- sapply(d, function(x) { x[[1]] })
+      #message("keys: ", keys)
+      contained <- keys %in% colnames
+      if (any(contained)) {
+        columns <<- append(columns, keys[contained])
+        measNames <- sapply(d, function(x) { x[[2]] })
+        # could use column indices rather than names?  Might be faster
+        indices <- match(keys[contained], colnames)
+        days <<- append(days, list(list(day,
+                                        indices, #keys[contained],
+                                        measNames[contained])))
+      }
+    }
+    columns <<- columns[columns %in% colnames]
+    #message("columns: ", columns)
+  },
+  empty = function() {
+    return(0 == length(columns))
+  },
+  band = function() {
+    return(bandID)
+  },
+  dayList = function() {
+    return(days)
+  }
+)
 
 ##########
 

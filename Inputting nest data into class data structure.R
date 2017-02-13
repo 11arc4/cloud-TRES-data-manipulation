@@ -1,59 +1,5 @@
 library(assertthat)
 
-BuildNestlingCallbacks <- setRefClass("BuildNestlingCallbacks",
-                                      fields = list(
-                                        "id" = "integer", # nestling ID
-                                        "bandID" = "character",
-                                        "columns" = "vector", # all the data columns which exist for this nestling
-                                        "days" = "list" # (dayNumber, vector(col1, col2, ..), vector(measName1, name2, ..))
-                                      ))
-BuildNestlingCallbacks$methods(
-  initialize = function(nestlingId, nestData) {
-    id <<- nestlingId
-    bandID <<- paste("band", nestlingId, sep = ".")
-    columns <<- c(bandID)
-    days <<- list()
-    callbacks <- list(
-      #(dataframe key, observationKey)
-      c("mass", "mass"),
-      c("tarsus", "tarsus"),
-      c("wing", "ninthPrimary")
-    )
-    colnames <- colnames(nestData)
-    for (day in 1:18) {
-      d <- sapply(callbacks, function(c) {
-        k1 <- paste(c[1], ".d", day, ".", nestlingId, sep="")
-        k2 <- paste(c[1], day, nestlingId, sep=".")
-        list(c(k1, c[2]),
-             c(k2, c[2]))
-      })
-      keys <- sapply(d, function(x) { x[[1]] })
-      #message("keys: ", keys)
-      contained <- keys %in% colnames
-      if (any(contained)) {
-        columns <<- append(columns, keys[contained])
-        measNames <- sapply(d, function(x) { x[[2]] })
-        # could use column indices rather than names?  Might be faster
-        indices <- match(keys[contained], colnames)
-        days <<- append(days, list(list(day,
-                                        indices, #keys[contained],
-                                        measNames[contained])))
-      }
-    }
-    columns <<- columns[columns %in% colnames]
-    #message("columns: ", columns)
-  },
-  empty = function() {
-      return(0 == length(columns))
-  },
-  band = function() {
-    return(bandID)
-  },
-  dayList = function() {
-    return(days)
-  }
-)
-
 
 #' InputNestDatatoClassStructure
 #'Runs through the nest data, creating Nests, TreeSwallows (for all nestlings
@@ -185,18 +131,14 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           nestdata = nestdata,
           chicknumber = n$id,
           rownumber = i,
-          dataSingleton = globalData
+          dataSingleton = globalData, 
+          bandID = n$bandID
         )
-        tres <- nestdata[i, n$bandID]
-        if (! is.na(tres)) {
-          # FIXME:  I guess we add a pointer?
-          # this nestling is banded...need to do something about it.
-        }
         # now build any observations for the nestling..
         for (d in n$dayList()) {
           day <- d[[1]]
           # are there any values which aren't NA?
-          meas <- nestdata[i, d[[2]]]
+          meas <- as.numeric(nestdata[i, d[[2]]])
           if (any(!is.na(meas))) {
             # yep...at least one..go ahead and build.
             nestlingObs <- NestlingMeasurements(age = day)
