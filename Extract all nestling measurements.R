@@ -14,12 +14,20 @@ fledgesize <- c()
 for (nestling in as.list(globalData$nestlings)){
   nest <- nestling$fromNest$m_key
   ID <- nestling$nestlingCode
-  fromNest <- get(nest, globalData$nests)
+  if (exists (nest, globalData$nests)){
+    fromNest <- get(nest, globalData$nests)
   year_ <- fromNest$year
   hdate <- fromNest$hatchDate
   hsize <- fromNest$hatchSize
   fsize <- fromNest$fledgeSize
   fdate <- fromNest$fledgeDate
+  } else {
+    year_ <- NA
+    hdate <- NA
+    hsize <- NA
+    fsize <- NA
+    fdate <- NA
+  }
   if(length(nestling$measurements$as.list()) >1){
     for (meas in nestling$measurements$as.list()){
       l <- length(age)+1
