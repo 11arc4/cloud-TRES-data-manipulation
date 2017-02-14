@@ -48,5 +48,5 @@ for (nestling in as.list(globalData$nestlings)){
 }
 
 nstgMeas <- data.frame(nestlingID, nestID, year, age, hatchdate, hatchsize, fledgedate, fledgesize,  mass, tarsus, ninprim)
-outputdir <- "~/Amelia TRES data 1975-2016/Extracted Data for Analysis"
+outputdir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Extracted Data for Analysis"
 write.csv(x=nstgMeas, file= paste (outputdir, "Nestling Measurements for Analysis.csv", sep="/"), na="", row.names = F)
