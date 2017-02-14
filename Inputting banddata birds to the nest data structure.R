@@ -1,3 +1,6 @@
+#Update the nest data structure to include all the birds in my master band data file
+#functionally this adds all the floaters as well as a surprising number of nestlings
+
 if ("Amelia" == Sys.getenv("USERNAME")) {
   banddir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
   
@@ -9,7 +12,7 @@ if ("Lab_Users" == Sys.getenv("USERNAME")) {
 } 
 
 
-
+library(beepr)
 
 bandfilename <- paste( banddir, "1975-2016 Bands.csv", sep="/")
 
@@ -110,6 +113,11 @@ for ( i in 1: length(band$BandID)){
       datesEqual=0
       yearsEqual =0
       date <- band$Date[i]
+      Obs <- BodyMeasurements(date=date, 
+                              wingChord = band$Wing.Chord[i], 
+                              ninthPrimary = band$Ninth.Primary[i],
+                              mass = band$Mass [i], 
+                              tarsus = band$Tarsus[i] )
       if (length(bird$yearsSeen$as.list())>0){
         for (year in bird$yearsSeen$as.list()){
           if(year$year==band$Year[i]){
@@ -125,14 +133,7 @@ for ( i in 1: length(band$BandID)){
               }
               if(datesEqual==0){
                 #if none of the dates match up then we have a new observation of this bird and should go and add it
-                Obs <- BodyMeasurements(date=date, 
-                                        wingChord = band$Wing.Chord[i], 
-                                        ninthPrimary = band$Ninth.Primary[i],
-                                        mass = band$Mass [i], 
-                                        tarsus = band$Tarsus[i] )
-                
                 year$addObservation (Obs) 
-                bird$addYearSeen(year)
               } 
             }
           }
@@ -141,15 +142,9 @@ for ( i in 1: length(band$BandID)){
           year <- YearsSeen(year=band$Year[i],
                             age=band$Age[i],
                             sex= band$Sex[i])
-          Obs <- BodyMeasurements(date=date,
-                                  wingChord = band$Wing.Chord[i], 
-                                  ninthPrimary = band$Ninth.Primary[i],
-                                  mass = band$Mass [i], 
-                                  tarsus = band$Tarsus[i] )
           year$addObservation(Obs)
           bird$addYearSeen(year)
           message("added an observation to ",  bandID, "from", band$Year[i], sep= " ")
-          
         }
       }
     } else {
@@ -175,5 +170,6 @@ for ( i in 1: length(band$BandID)){
     }
   }
 }
+beep(1)
 
 AllglobalData <- globalData$copy
