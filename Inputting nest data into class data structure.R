@@ -156,6 +156,8 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           dataSingleton = globalData, 
           bandID = n$bandID
         )
+        globalData$insertNestling(nestling)
+      
         # now build any observations for the nestling..
         for (d in n$dayList()) {
           day <- d[[1]]
