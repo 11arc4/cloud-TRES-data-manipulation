@@ -21,7 +21,7 @@ library(assertthat)
 InputNestDatatoClassStructure <- function (nestdata, globalData) {
 
   nestlings <- c()
-  for (i in 1:12) {
+  for (i in 1:20) {
     n <- BuildNestlingCallbacks(i, nestdata)
     if (! n$empty()) {
       nestlings <- append(nestlings, c(n))
