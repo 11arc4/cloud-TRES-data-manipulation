@@ -26,11 +26,10 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
     if (! n$empty()) {
       nestlings <- append(nestlings, c(n))
     }
-    #print number of nestlings in list...
   }
-  nestlingsBuilt <- 0L
+
   year <- nestdata$Year[1]
-  message("starting year ", year, " (we seem to have ", length(nestlings), " nestling column groups)")
+  message("starting year ", year)
   for (i in 1: length(nestdata$Year)){
     #message("  begin nest ", i)
     nestID <- paste (as.character(year), nestdata$BoxID[i], sep="-")  #This is the unique
@@ -44,7 +43,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
       if (! is.na(birdID)) {
         #message("   start ", attrib[1], " ", birdID)
         age <- as.character(nestdata[[i, paste(sex, "Age", sep=".")]])
-
+        
         # look for this bird is the globalData
         if (!exists(birdID, globalData$birds)) {
           # this is the first time we have seen this female...buid a TreeSwallow for it...
@@ -55,7 +54,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
                                  sex= sex,
                                  returnstatus=NA_character_,
                                  hatchNest=EnvPointer(NA_character_, globalData$nests)
-
+                                 
           )
           bird$addYearSeen(yearentry)
 
@@ -75,7 +74,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           l2 <- bird$yearsSeen$as.list()
           if(any(nestdata$Year[i]== sapply(l2, function(v) {v$year} ))){
             yearentry <- bird$yearsSeen$buffer[[which(sapply(l2, function(v) { v$year} )==nestdata$Year[i])]]
-
+            
           } else {
             yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
                                    age= age,
@@ -83,21 +82,21 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
                                    returnstatus=NA_character_,
                                    hatchNest=EnvPointer(NA_character_, globalData$nests))
             bird$addYearSeen(yearentry)
-
-
+            
+                                  
           }
         }
-
+      
 
         #bird$addNest(nest)
-
-
+        
+      
         yearentry$addNest (EnvPointer(nestID, globalData$nests))
 
         #If this isn't NA, then we have SOME measurements, and need to add them as an observation
         dayMeasured <-  nestdata[[i, paste(sex, "Day.measured", sep=".")]]
-
-
+        
+        
         if(!is.na(dayMeasured)){
           dt <- strsplit(dayMeasured, "-")
           if (length(dt[[1]])>1) {
@@ -154,13 +153,13 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           nestdata = nestdata,
           chicknumber = n$id,
           rownumber = i,
-          dataSingleton = globalData,
+          dataSingleton = globalData, 
           bandID = n$bandID
         )
 
         globalData$insertNestling(nestling)
         nestlingsBuilt <- nestlingsBuilt + 1L
-        # now build any observations for the nestling..
+       # now build any observations for the nestling..
         for (d in n$dayList()) {
           day <- d[[1]]
           # are there any values which aren't NA?
@@ -179,6 +178,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
       }
     }
 
+
     # HGC:  I added some counts to see how many things we were building vs. how many
     #  we were keeping...at least for the year 1988, we keep very little.
     #  this can probably be faster, if we filter better (even if the processing for the
@@ -187,5 +187,4 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           #  " obs:", keptObs, " of ", builtObservations)
     globalData$insertNest(nestID= nestID, Nest=nest)
   }
-  message("  built ", nestlingsBuilt, " nestlings..")
 }
