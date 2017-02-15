@@ -27,6 +27,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
       nestlings <- append(nestlings, c(n))
     }
   }
+  nestlingsBuilt <- 0
 
   year <- nestdata$Year[1]
   message("starting year ", year)
@@ -187,4 +188,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           #  " obs:", keptObs, " of ", builtObservations)
     globalData$insertNest(nestID= nestID, Nest=nest)
   }
+  message("Built ", nestlingsBuilt, "nestlings in year", year)
+  
 }
