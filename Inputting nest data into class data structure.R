@@ -157,6 +157,9 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           dataSingleton = globalData, 
           bandID = n$bandID
         )
+        if(is.null(nestling)){
+          message("Nestling from year ", year, "is null")
+        }
 
         globalData$insertNestling(nestling)
         nestlingsBuilt <- nestlingsBuilt + 1L
