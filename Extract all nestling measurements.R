@@ -10,6 +10,7 @@ hatchsize <- c()
 hatchdate <- c()
 fledgedate <- c()
 fledgesize <- c()
+growthrates <- c()
 
 for (nestling in as.list(globalData$nestlings)){
   nest <- nestling$fromNest$m_key
@@ -46,7 +47,7 @@ for (nestling in as.list(globalData$nestlings)){
       }
     }
   }
-  
+  growthrates[length(growthrates)+1]<- nestling$growthRateMass
 }
 
 nstgMeas <- data.frame(nestlingID, nestID, year, age, hatchdate, hatchsize, fledgedate, fledgesize,  mass, tarsus, ninprim)

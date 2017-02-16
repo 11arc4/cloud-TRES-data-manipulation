@@ -15,7 +15,8 @@ library(beepr)
 
 globalData <- GlobalBirdData()
 
-for (filename in listfilenames){
+for (j  in 1:length(listfilenames)){
+  filename <- listfilenames[j]
   file <- paste( outerdir, filename, sep="/")
   nestdata<- read.csv(file, as.is=TRUE, na.strings=c("", "NA"))
   nestdata$F.Day.measured <- as.character(nestdata$F.Day.measured)
