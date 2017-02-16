@@ -16,11 +16,11 @@ for (nestling in as.list(globalData$nestlings)){
   ID <- nestling$nestlingCode
   if (exists (nest, globalData$nests)){
     fromNest <- get(nest, globalData$nests)
-  year_ <- fromNest$year
-  hdate <- fromNest$hatchDate
-  hsize <- fromNest$hatchSize
-  fsize <- fromNest$fledgeSize
-  fdate <- fromNest$fledgeDate
+    year_ <- fromNest$year
+    hdate <- fromNest$hatchDate
+    hsize <- fromNest$hatchSize
+    fsize <- fromNest$fledgeSize
+    fdate <- fromNest$fledgeDate
   } else {
     year_ <- NA
     hdate <- NA
@@ -28,20 +28,22 @@ for (nestling in as.list(globalData$nestlings)){
     fsize <- NA
     fdate <- NA
   }
-  if(length(nestling$measurements$as.list()) >1){
+  if(length(nestling$measurements$as.list()) >=1){
     for (meas in nestling$measurements$as.list()){
-      l <- length(age)+1
-      age[l] <- meas$age
-      ninprim[l] <- meas$ninthPrimary
-      tarsus[l] <- meas$tarsus
-      mass[l] <- meas$mass
-      year[l] <- year_
-      nestID[l] <- nest
-      nestlingID[l] <- ID
-      hatchsize[l] <- hsize
-      hatchdate[l] <- hdate
-      fledgesize[l] <- fsize
-      fledgedate[l] <- fdate
+      if(!is.null(meas)){
+        l <- length(age)+1
+        age[l] <- meas$age
+        ninprim[l] <- meas$ninthPrimary
+        tarsus[l] <- meas$tarsus
+        mass[l] <- meas$mass
+        year[l] <- year_
+        nestID[l] <- nest
+        nestlingID[l] <- ID
+        hatchsize[l] <- hsize
+        hatchdate[l] <- hdate
+        fledgesize[l] <- fsize
+        fledgedate[l] <- fdate
+      }
     }
   }
   
