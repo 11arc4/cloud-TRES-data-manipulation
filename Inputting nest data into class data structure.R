@@ -31,9 +31,12 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
 
   year <- nestdata$Year[1]
   message("starting year ", year)
+  nestDataColumns <- colnames(nestdata)
+
   for (i in 1: length(nestdata$Year)){
     #message("  begin nest ", i)
-    nestID <- paste (as.character(year), nestdata$BoxID[i], sep="-")  #This is the unique
+    boxID <- nestdata$BoxID[i]
+    nestID <- paste (as.character(year), boxID, sep="-")  #This is the unique
     nest <- Nest(year=year, siteID=as.character(nestdata$siteID[i]) )
 
     #Need to create (or append) sightings of the parents as TreeSwallows
@@ -44,18 +47,19 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
       if (! is.na(birdID)) {
         #message("   start ", attrib[1], " ", birdID)
         age <- as.character(nestdata[[i, paste(sex, "Age", sep=".")]])
-        
+
         # look for this bird is the globalData
         if (!exists(birdID, globalData$birds)) {
           # this is the first time we have seen this female...buid a TreeSwallow for it...
           bird <- TreeSwallow(bandID=birdID, sex=sex)
           globalData$insertBird(bird)
-          yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
+          yearentry <- YearsSeen(nestdata,
+                                 year= year, #set outside the function when we're going through the nestdata
                                  age= age,
                                  sex= sex,
                                  returnstatus=NA_character_,
                                  hatchNest=EnvPointer(NA_character_, globalData$nests)
-                                 
+
           )
           bird$addYearSeen(yearentry)
 
@@ -75,7 +79,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           l2 <- bird$yearsSeen$as.list()
           if(any(nestdata$Year[i]== sapply(l2, function(v) {v$year} ))){
             yearentry <- bird$yearsSeen$buffer[[which(sapply(l2, function(v) { v$year} )==nestdata$Year[i])]]
-            
+
           } else {
             yearentry <- YearsSeen(year= year, #set outside the function when we're going through the nestdata
                                    age= age,
@@ -83,37 +87,38 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
                                    returnstatus=NA_character_,
                                    hatchNest=EnvPointer(NA_character_, globalData$nests))
             bird$addYearSeen(yearentry)
-            
-                                  
           }
         }
-      
 
         #bird$addNest(nest)
-        
-      
+
         yearentry$addNest (EnvPointer(nestID, globalData$nests))
 
         #If this isn't NA, then we have SOME measurements, and need to add them as an observation
         dayMeasured <-  nestdata[[i, paste(sex, "Day.measured", sep=".")]]
-        
-        
+
         if(!is.na(dayMeasured)){
           dt <- strsplit(dayMeasured, "-")
-          if (length(dt[[1]])>1) {
+          if (length(dt[[1]]) > 1) {
             dayMeasured <- paste(dt[[1]][2], dt[[1]][[3]], dt[[1]][1], sep="/")
           }
-          bodymetrics <- BodyMeasurements(date=as.character(dayMeasured)
-                                          )
-          for (metric in list(c("Wing..mm.", "wingChord"), c("Nineth.Primary..mm.", "ninthPrimary"),
-                              c("Mass..g.", "mass"), c("Tarsus..mm.", "tarsus"))) {
-            k = paste(sex, metric[1], sep=".")
-            if(exists(k, nestdata)){
-              m <- nestdata[[i, k]]
-              if (!is.na(m)) {
-                bodymetrics[[metric[2]]] <- as.numeric(m)
+          bodymetrics <- BodyMeasurements(date=as.character(dayMeasured))
+          # these are the column names of the measurement - "F.Wing..mm.", etc
+          measBaseNames <- c("Wing..mm.","Nineth.Primary..mm.", "Mass..g.", "Tarsus..mm.")
+          # these are the names of the body metric attributes - must be in the same order as base names, above
+          metrics <- c("wingChord", "ninthPrimary", "mass", "tarsus")
+          keys <- sapply(measBaseNames, function(x) { paste(sex, x, sep=".") } )
+          existKeys <- keys %in% nestDataColumns
+          k2 <- keys[existKeys]
+          vals <- nestdata[i, k2]
+          if ( any(! is.na(k2) ) )
+          {
+            m2 <- metrics[existKeys]
+            mapply(function(measName, data) {
+              if (!is.na(data)) {
+                bodymetrics[[measName]] <- as.numeric(data)
               }
-            }
+            }, m2, vals)
           }
           yearentry$addObservation(bodymetrics)
 
@@ -151,10 +156,11 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
         # there is data here...
         #This creates the Nestling, and creates an associated TreeSwallow if applicable
         nestling <- globalData$buildNestling(
-          nestdata = nestdata,
+          year = year,
+          boxID = boxID,
           chicknumber = n$id,
           rownumber = i,
-          dataSingleton = globalData, 
+          dataSingleton = globalData,
           bandID = n$bandID
         )
         if(is.null(nestling)){
@@ -191,6 +197,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           #  " obs:", keptObs, " of ", builtObservations)
     globalData$insertNest(nestID= nestID, Nest=nest)
   }
-  message("Built ", nestlingsBuilt, "nestlings in year", year)
-  
+  message("  Built ", nestlingsBuilt, " nestlings in year ", year)
+
 }
