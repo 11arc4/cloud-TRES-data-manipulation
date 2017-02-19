@@ -506,8 +506,11 @@ BuildNestlingCallbacks <- setRefClass("BuildNestlingCallbacks",
                                       fields = list(
                                         "id" = "integer", # nestling ID
                                         "bandID" = "character",
-                                        "columns" = "vector", # all the data columns which exist for this nestling
-                                        "days" = "list" # (dayNumber, vector(col1, col2, ..), vector(measName1, name2, ..))
+                                        "columns" = "vector", # all the data column names which exist for this nestling
+                                        "colNums" = "vector", # the column numbers in the nest dataframe which exist for the nestling
+                                        "days" = "list"  # (dayNumber, vector(col1, col2, ..), vector(measName1, name2, ..),
+                                                         #             vector(colNumInNestlingVector, colNum..))
+                                                         #     colNum are indices into the vector returned from the 'columns' query
                                       ))
 BuildNestlingCallbacks$methods(
   initialize = function(nestlingId, nestData) {
@@ -537,12 +540,15 @@ BuildNestlingCallbacks$methods(
         measNames <- sapply(d, function(x) { x[[2]] })
         # could use column indices rather than names?  Might be faster
         indices <- match(keys[contained], colnames)
+        indexNum <- match(keys[contained], columns)
         days <<- append(days, list(list(day,
                                         indices, #keys[contained],
-                                        measNames[contained])))
+                                        measNames[contained],
+                                        indexNum)))
       }
     }
     columns <<- columns[columns %in% colnames]
+    colNums <<- match(columns, colnames)
     #message("columns: ", columns)
   },
   empty = function() {

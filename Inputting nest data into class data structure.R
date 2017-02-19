@@ -173,7 +173,15 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
         for (d in n$dayList()) {
           day <- d[[1]]
           # are there any values which aren't NA?
-          meas <- as.numeric(nestdata[i, d[[2]]])
+          #   look up in the vector we already extracted (indexing by integer)
+          #    (rather than going back to the dataframe and looking up again)
+          meas <- as.numeric(nestlingData[d[[4]]])
+          # commented out this check that the value we retrieve is the same
+          #   regardless of how we choose to look it up.
+          #meas2 <- as.numeric(nestdata[i, d[[2]]])
+          #if (any(! (meas == meas2 | (is.na(meas) & is.na(meas2))))) {
+          #  assert_that(FALSE)
+          #}
           if (any(!is.na(meas))) {
             # yep...at least one..go ahead and build.
             nestlingObs <- NestlingMeasurements(age = day)
