@@ -42,6 +42,9 @@ band<- band[which(!is.na(band$Age) & !is.na(band$Sex) & !is.na(band$Year) & !is.
 #Some of the band IDs are actually color codes--want to remove those from the data
 band <- band[which(nchar(band$BandID)>5), ]
 
+#Fix band date format 
+band$Date <- as.character(as.Date(as.character(band$Date), format= "%m/%d/%Y"))
+
 #here we want to create TreeSwallows as needed, or add in new observations IF
 #the date on those observations doesn't match up with one that already exists
 #(this will happen when we already used that measurement to fill in measurements
