@@ -155,7 +155,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           chicknumber = n$id,
           rownumber = i,
           dataSingleton = globalData, 
-          bandID = n$bandID
+          bandID = as.character(nestdata[i, n$bandID])
         )
         nID <- nestling$nestlingCode
         if(is.null(nestling)){
