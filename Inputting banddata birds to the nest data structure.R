@@ -1,6 +1,6 @@
 #Update the nest data structure to include all the birds in my master band data file
 #functionally this adds all the floaters as well as a surprising number of nestlings
-
+library(lubridate)
 if ("Amelia" == Sys.getenv("USERNAME")) {
   banddir <- "~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
   
@@ -56,6 +56,16 @@ for ( i in 1: length(band$BandID)){
       #if the nestling wasn't already made then we need to make this nestling
       #and attach it to the appropriate nest if we can
       #also need to create an associated tree swallow and link it
+      
+      #Nestling will appear in this section that aren't already added to the
+      #nestdatafiles because when we added the nestlings the first time we only
+      #added extra nestlings if there were no other nestlings that we already
+      #knew information about (ie if there was already 2 of the 5 nestlings, we
+      #didn't add the extra 3 but it turns out there are 3 more! Oh dear. Be
+      #extra careful to use the global data NOT the nestdata if you want to do a
+      #multiyear analysis)
+      
+      
       fromNest <- paste (as.character(band$Year[i]), band$BoxID[i], sep="-") 
       bird <- TreeSwallow(bandID=bandID, hatchnest= EnvPointer(fromNest, globalData$nests) )
       yearentry <- YearsSeen(year= band$Year[i],
@@ -63,9 +73,72 @@ for ( i in 1: length(band$BandID)){
                              sex = "U",
                              hatchNest = EnvPointer(fromNest, globalData$nests) )
       bird$addYearSeen(yearentry)
-      
-      nestling <- Nestling( nestlingTRES = EnvPointer(bandID, globalData$birds), 
-                            fromNest = EnvPointer(fromNest, globalData$nests))
+      #Have to deal with issues of (1) and (2) nests!
+      if(exists(fromNest, globalData$nests)){
+        nest <- get(fromNest, globalData$nests)
+      } else {
+        #then we probably have a nest that is a 1, 2, or maybe even 3 nest so
+        #will need to figure out which one it is based on the day we measured
+        #the nestlings and the fledge or fail date!
+        #WILL NEED TO DEAL WITH THIS IS THIS BREAKPOINT IS REACHED!
+        if(is.na(band$Date[i])){
+          if(exists(paste(fromNest, "(1)"), globalData$nests)){
+            nest <- get(paste(fromNest, "(1)"), globalData$nests)
+            if(nest$hatchSize<1){
+              if(exists(paste(fromNest, "(2)"), globalData$nests)){
+                nest <- get(paste(fromNest, "(2)"), globalData$nests)
+                if(nest$hatchSize<1){
+                  if(exists(paste(fromNest, "(3)"), globalData$nests)){
+                    nest <- get(paste(fromNest, "(3)"), globalData$nests)
+                    if(nest$hatchSize<1){
+                      message("all of these nests didn't have nestlings", fromNest)
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          
+          if(exists(paste(fromNest, "(1)"), globalData$nests)){
+            nest <- get(paste(fromNest, "(1)"), globalData$nests)
+            
+            if(nest$hatchSize<1){
+              
+              if(exists(paste(fromNest, "(2)"), globalData$nests)){
+                nest <- get(paste(fromNest, "(2)"), globalData$nests)
+                
+                if(nest$hatchSize<1){
+                  if(exists(paste(fromNest, "(3)"), globalData$nests)){
+                    nest <- get(paste(fromNest, "(3)"), globalData$nests)
+                    if(nest$hatchSize<1){
+                      message("Oh dear this nest doesn't seem to exist", fromNest)
+                    }
+                  }
+                }
+                
+              }
+            }
+          } else {
+            message("This nest doesn't exist.... oh dear")
+            nest <- Nest(year=band$Year[i], siteID= fromNest)
+            globalData$insertNest(nest$siteID, nest)
+          }
+        }
+      }
+        
+        nestlingcode <- paste(nest$siteID,  " nestling " , nest$nestlings$length +1, sep="")
+        nestling <- Nestling( nestlingTRES = EnvPointer(bandID, globalData$birds), 
+                              fromNest = EnvPointer(nest$siteID, globalData$nests), 
+                              nestlingCode=nestlingcode)
+        if(!is.na(nest$hatchDate)){
+        nstgMeas <- NestlingMeasurements( age = yday(band$Date[i])-nest$hatchDate,
+                                          ninthPrimary = band$Ninth.Primary[i],
+                                          mass = band$Mass[i],
+                                          tarsus = band$Tarsus[i])
+        nestling$addObservation(nstgMeas) 
+      }
+      nest$addNestling(nestling)
       globalData$insertBird(bird = bird)
       globalData$insertNestling(nestling)
       message ("added a nestling ", bandID, " from ", fromNest, sep= " ")
