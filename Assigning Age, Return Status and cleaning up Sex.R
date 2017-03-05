@@ -38,31 +38,51 @@ for (bird in as.list(globalData$birds)){
         #QUick fixes to check to see that everyone is consistent about how they write ages
         if (length(year$age)!=0 ){
           if(!is.na(year$age)){
-            
-            if( year$age=="2Y") {
-              year$age <- "SY"
-            }
-            if(year$age == "A2Y"){
+          
+            if(year$age == "A2Y" ){
               year$age <- "ASY"
+            }
+            if(year$age=="AS"){
+              year$age ="ASY"
+            }
+            if(year$age=="ASYR"){
+              year$age ="ASY"
+            }
+            if(year$age=="LSY"){
+              year$age ="ASY"
+            }
+            if(year$age=="AAY"){
+              year$age ="ASY"
             }
             if(year$age=="AFY"){
               year$age ="A5Y"
             }
-            if(year$age=="ASYR"){
-              year$age = "ASY"
+            
+            if(year$age=="A1Y" ){
+              year$age="AHY"
             }
-            if(year$age=="A1Y"){
+            if(year$age=="U"){
               year$age="AHY"
             }
             if(year$age=="TRES"){
               year$age = "AHY"
             }
-            if(year$age=="SYN"){
+            if( year$age==" "){
+              year$age = "AHY"
+            }
+            if(year$age=="SYN" ){
               year$age= "SY"
             }
-            if(year$age=="SY?"){
-              year$age="SY"
+            if(year$age=="SY?" ){
+              year$age= "SY"
             }
+            if( year$age=="2Y"){
+              year$age= "SY"
+            }
+            if(year$age=="TY"){
+              year$age="3Y"
+            }
+            
             
           } else {
             message("Bird", bird$bandID, "from", year$year,  "has unknown age. Entered here as AHY")
