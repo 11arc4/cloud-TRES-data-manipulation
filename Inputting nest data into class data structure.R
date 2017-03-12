@@ -42,6 +42,12 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
       birdID <- as.character(nestdata[[i, attrib[1]]])
       sex <- attrib[2]
       if (! is.na(birdID)) {
+        if(sex=="F"){
+          nest$femaleID<- EnvPointer(birdID, globalData$birds)
+        } else {
+          nest$maleID<- EnvPointer(birdID, globalData$birds)
+          
+        }
         #message("   start ", attrib[1], " ", birdID)
         age <- as.character(nestdata[[i, paste(sex, "Age", sep=".")]])
         
@@ -161,7 +167,10 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
         if(is.null(nestling)){
           message("Nestling from year ", year, "is null")
         }
+        #Put nestling into the global data nestlings
         globalData$insertNestling(nestling)
+        #Put nestling into the nestling list for that nest
+        nest$addNestling(EnvPointer( nestling$nestlingCode, globalData$nestlings))
         if (is.null(globalData$findNestling(nID))){
           message("nestling from year ", year, "created but not put into globaldata")
         }
