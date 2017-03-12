@@ -127,42 +127,42 @@ GlobalBirdData$methods(
       }
     }
   },
-  buildNestling = function(nestdata,
+  buildNestling = function(year,
+                           boxID,
                            chicknumber,
                            rownumber,
-                           dataSingleton=globalData, 
+                           dataSingleton=globalData,
                            bandID=NA_character_) {
     nestID <-
-      .self$buildNestID(year = nestdata$Year[rownumber], boxID = nestdata$BoxID[rownumber])  #This is the unique
+      .self$buildNestID(year = year, boxID = boxID)  #This is the unique
     nestlingCode <-
       paste(nestID, "nestling", as.character(chicknumber))
-    # check the nestdata to see if there is a bandID for this bird...
-    
+
     if (!is.na(bandID)) {
       # this nestling has an associated TreeSwallow...build the TreeSwallow structure for it.
       #since it's a nestling you won't already have a TreeSwallow for this bird to go right ahead and make one
-      
-      
+
+
       newBird = TreeSwallow(bandID = bandID,
                             hatchnest = EnvPointer(id = nestID, hash = dataSingleton$nests))
-      year <- YearsSeen(year=nestdata$Year[rownumber],
+      year <- YearsSeen(year=year,
                         hatchNest = EnvPointer(id = nestID, hash = dataSingleton$nests),
                         sex= "U",
                         age= "HY")
       newBird$addYearSeen(year)
-      
+
       dataSingleton$insertBird(newBird)
-      
+
       # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
       birdPtr = EnvPointer(id = bandID, hash = .self$birds)
-      
-      
+
+
       chick <-
         Nestling(
           fromNest = EnvPointer(id = nestID, hash = .self$nests),
           nestlingCode = nestlingCode,
           nestlingTRES=birdPtr)
-      
+
       return(chick)
     } else {
       chick <-
@@ -170,11 +170,11 @@ GlobalBirdData$methods(
           fromNest = EnvPointer(id = nestID, hash = .self$nests),
           nestlingCode = nestlingCode
         )
-      
+
       return(chick)
     }
   }
-  
+
 
 
 )
@@ -408,7 +408,7 @@ TreeSwallow$methods(
     l <- y[order(sapply(y, function(x) {
       x$year
     }))] # ascending sort
-  }, 
+  },
   viewYears = function () {
     y <- .self$yearsSeen$as.list()
     sapply(y, function(x) {
@@ -506,8 +506,11 @@ BuildNestlingCallbacks <- setRefClass("BuildNestlingCallbacks",
                                       fields = list(
                                         "id" = "integer", # nestling ID
                                         "bandID" = "character",
-                                        "columns" = "vector", # all the data columns which exist for this nestling
-                                        "days" = "list" # (dayNumber, vector(col1, col2, ..), vector(measName1, name2, ..))
+                                        "columns" = "vector", # all the data column names which exist for this nestling
+                                        "colNums" = "vector", # the column numbers in the nest dataframe which exist for the nestling
+                                        "days" = "list"  # (dayNumber, vector(col1, col2, ..), vector(measName1, name2, ..),
+                                                         #             vector(colNumInNestlingVector, colNum..))
+                                                         #     colNum are indices into the vector returned from the 'columns' query
                                       ))
 BuildNestlingCallbacks$methods(
   initialize = function(nestlingId, nestData) {
@@ -537,12 +540,15 @@ BuildNestlingCallbacks$methods(
         measNames <- sapply(d, function(x) { x[[2]] })
         # could use column indices rather than names?  Might be faster
         indices <- match(keys[contained], colnames)
+        indexNum <- match(keys[contained], columns)
         days <<- append(days, list(list(day,
                                         indices, #keys[contained],
-                                        measNames[contained])))
+                                        measNames[contained],
+                                        indexNum)))
       }
     }
     columns <<- columns[columns %in% colnames]
+    colNums <<- match(columns, colnames)
     #message("columns: ", columns)
   },
   empty = function() {
