@@ -43,8 +43,10 @@ band<- band[which(!is.na(band$Age) & !is.na(band$Sex) & !is.na(band$Year) & !is.
 band <- band[which(nchar(band$BandID)>5), ]
 
 #Fix band date format 
-band$Date <- as.character(as.Date(as.character(band$Date), format= "%m/%d/%Y"))
 
+band$Date[which(grepl("/", band$Date))] <- as.character(as.Date(as.character(band$Date[which(grepl("/", band$Date))]), format= "%m/%d/%Y"))
+band$Date[which(nchar(band$Date)<10)] <- paste(substr(band$Date[which(nchar(band$Date)<10)], 1, 2), "0", substr(band$Date[which(nchar(band$Date)<10)], 3, 6), sep = "")
+band$Date[which(nchar(band$Date)<10)] <- as.character(as.Date(band$Date[which(nchar(band$Date)<10)], format="%d%m%y"))
 #here we want to create TreeSwallows as needed, or add in new observations IF
 #the date on those observations doesn't match up with one that already exists
 #(this will happen when we already used that measurement to fill in measurements
@@ -138,7 +140,7 @@ for ( i in 1: length(band$BandID)){
                                           tarsus = band$Tarsus[i])
         nestling$addObservation(nstgMeas) 
       }
-      nest$addNestling(nestling)
+      nest$addNestling(EnvPointer(nestlingcode, globalData$nestlings)   )
       globalData$insertBird(bird = bird)
       globalData$insertNestling(nestling)
       message ("added a nestling ", bandID, " from ", fromNest, sep= " ")
