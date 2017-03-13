@@ -83,17 +83,77 @@ for ( i in 1: length(band$BandID)){
         #will need to figure out which one it is based on the day we measured
         #the nestlings and the fledge or fail date!
         #WILL NEED TO DEAL WITH THIS IS THIS BREAKPOINT IS REACHED!
-        if(is.na(band$Date[i])){
-          if(exists(paste(fromNest, "(1)"), globalData$nests)){
-            nest <- get(paste(fromNest, "(1)"), globalData$nests)
-            if(nest$hatchSize<1){
+        if(exists(paste(fromNest, "(1)"), globalData$nests)){
+          nest <- get(paste(fromNest, "(1)"), globalData$nests)
+          if(is.na(nest$fledgeSize)){
+            if(!is.na(nest$hatchSize)){
+              if(!is.na(nest$hatchSize)){
+                if(nest$hatchSize != 0){
+                  if(exists(paste(fromNest, "(2)"), globalData$nests)){
+                    nest <- get(paste(fromNest, "(2)"), globalData$nests)
+                    if(is.na(nest$fledgeSize)){
+                      if(nest$nestlings$length>0){
+                        message("hmmmm this nestling doesn't seem to fit anywhere")
+                      } else {
+                        message("mannually check this nestling to see where it goes ", bird$bandID)
+                      }
+                    } else {
+                      if(nest$fledgeSize<1){
+                        if(exists(paste(fromNest, "(3)"), globalData$nests)){
+                          nest <- get(paste(fromNest, "(3)"), globalData$nests)
+                          if(!is.na(nest$fledgeSize)){
+                            if(nest$fledgeSize<1){
+                              message("all of these nests didn't have nestlings", fromNest)
+                            }
+                          } else {
+                            if( nest$nestlings$length>0){
+                              message("nest already has nestlings", fromNest)
+                            } else {
+                              message("all of these nests didn't have nestlings", fromNest)
+                            }
+                          }
+                          
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+                  
+                  
+                  
+  
+              nest <- get(paste(fromNest, "(1)"), globalData$nests)
+            } else {
+              message("mannually check this nestling to see where it goes ", bird$bandID)
+            }
+          } else {
+            
+            if(nest$fledgeSize<1){
               if(exists(paste(fromNest, "(2)"), globalData$nests)){
                 nest <- get(paste(fromNest, "(2)"), globalData$nests)
-                if(nest$hatchSize<1){
-                  if(exists(paste(fromNest, "(3)"), globalData$nests)){
-                    nest <- get(paste(fromNest, "(3)"), globalData$nests)
-                    if(nest$hatchSize<1){
-                      message("all of these nests didn't have nestlings", fromNest)
+                if(is.na(nest$fledgeSize)){
+                  if(nest$nestlings$length>0){
+                    message("hmmmm this nestling doesn't seem to fit anywhere")
+                  } else {
+                    message("mannually check this nestling to see where it goes ", bird$bandID)
+                  }
+                } else {
+                  if(nest$fledgeSize<1){
+                    if(exists(paste(fromNest, "(3)"), globalData$nests)){
+                      nest <- get(paste(fromNest, "(3)"), globalData$nests)
+                      if(!is.na(nest$fledgeSize)){
+                        if(nest$fledgeSize<1){
+                          message("all of these nests didn't have nestlings", fromNest)
+                        }
+                      } else {
+                        if( nest$nestlings$length>0){
+                          message("nest already has nestlings", fromNest)
+                        } else {
+                          message("all of these nests didn't have nestlings", fromNest)
+                        }
+                      }
+                      
                     }
                   }
                 }
@@ -101,39 +161,16 @@ for ( i in 1: length(band$BandID)){
             }
           }
         } else {
-          
-          if(exists(paste(fromNest, "(1)"), globalData$nests)){
-            nest <- get(paste(fromNest, "(1)"), globalData$nests)
-            
-            if(nest$hatchSize<1){
-              
-              if(exists(paste(fromNest, "(2)"), globalData$nests)){
-                nest <- get(paste(fromNest, "(2)"), globalData$nests)
-                
-                if(nest$hatchSize<1){
-                  if(exists(paste(fromNest, "(3)"), globalData$nests)){
-                    nest <- get(paste(fromNest, "(3)"), globalData$nests)
-                    if(nest$hatchSize<1){
-                      message("Oh dear this nest doesn't seem to exist", fromNest)
-                    }
-                  }
-                }
-                
-              }
-            }
-          } else {
-            message("This nest doesn't exist.... oh dear")
-            nest <- Nest(year=band$Year[i], siteID= fromNest)
-            globalData$insertNest(nest$siteID, nest)
-          }
+          message("This nest doesn't exist.... oh dear")
+          nest <- Nest(year=band$Year[i], siteID= fromNest)
+          globalData$insertNest(nest$siteID, nest)
         }
       }
-        
-        nestlingcode <- paste(nest$siteID,  " nestling " , nest$nestlings$length +1, sep="")
-        nestling <- Nestling( nestlingTRES = EnvPointer(bandID, globalData$birds), 
-                              fromNest = EnvPointer(nest$siteID, globalData$nests), 
-                              nestlingCode=nestlingcode)
-        if(!is.na(nest$hatchDate)){
+      nestlingcode <- paste(nest$siteID,  " nestling " , nest$nestlings$length +1, sep="")
+      nestling <- Nestling( nestlingTRES = EnvPointer(bandID, globalData$birds), 
+                            fromNest = EnvPointer(nest$siteID, globalData$nests), 
+                            nestlingCode=nestlingcode)
+      if(!is.na(nest$hatchDate)){
         nstgMeas <- NestlingMeasurements( age = yday(band$Date[i])-nest$hatchDate,
                                           ninthPrimary = band$Ninth.Primary[i],
                                           mass = band$Mass[i],
@@ -175,9 +212,7 @@ for ( i in 1: length(band$BandID)){
             #Can't add neslting Measurements because unknown how old they are
           } 
         }
-        
       }
-      
     }
     #if the nestling was made theres no need to do anything
   } else {
@@ -187,7 +222,6 @@ for ( i in 1: length(band$BandID)){
       #check to see whether this is a new observation of the bird or not. If it's
       #new, add it as an observation. If it's a duplicated observation, just skip
       #it
-      
       datesEqual=0
       yearsEqual =0
       date <- band$Date[i]
@@ -200,7 +234,6 @@ for ( i in 1: length(band$BandID)){
         for (year in bird$yearsSeen$as.list()){
           if(year$year==band$Year[i]){
             yearsEqual= yearsEqual + 1 #my way of checking to see if we've matched a year....
-            
             if( !is.na(date) & !is.null(year$observations$as.list()[[1]])){
               for (obs in year$observations$as.list()){
                 if (!is.na(obs$date)) {
