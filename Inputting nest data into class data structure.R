@@ -21,8 +21,8 @@ library(assertthat)
 InputNestDatatoClassStructure <- function (nestdata, globalData) {
   
   nestlings <- c()
-  for (i in 1:20) {
-    n <- BuildNestlingCallbacks(i, nestdata)
+  for (a in 1:20) {
+    n <- BuildNestlingCallbacks(a, nestdata)
     if (! n$empty()) {
       nestlings <- append(nestlings, c(n))
     }
@@ -37,7 +37,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
     #message("  begin nest ", i)
     boxID <- nestdata$BoxID[i]
     nestID <- paste (as.character(year), boxID, sep="-")  #This is the unique
-    nest <- Nest(year=year, siteID=as.character(nestdata$siteID[i]) )
+    nest <- Nest(year=year,  siteID=as.character(nestdata$siteID[i]) )
     
     #Need to create (or append) sightings of the parents as TreeSwallows
     parentAttrib <- list(c("FemaleID", "F"), c("MaleID", "M"))
@@ -97,7 +97,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           }
         }
 
-        #bird$addNest(nest)
+        bird$addNest(EnvPointer(nestID, globalData$nests))
 
         yearentry$addNest (EnvPointer(nestID, globalData$nests))
         
@@ -167,7 +167,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           boxID = boxID,
           chicknumber = n$id,
           rownumber = i,
-          dataSingleton = globalData,
           bandID = n$bandID
         )
         nID <- nestling$nestlingCode
@@ -178,6 +177,19 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
         globalData$insertNestling(nestling)
         #Put nestling into the nestling list for that nest
         nest$addNestling(EnvPointer( nestling$nestlingCode, globalData$nestlings))
+        #Put that bird into the birds hash
+        if(!is.na(n$bandID)){
+          bird <- TreeSwallow(bandID = n$bandID,
+                                          hatchnest = EnvPointer(id = nestID, hash = globalData$nests))
+          yearentry <- YearsSeen(year=year,
+                                 hatchNest = EnvPointer(id = nestID, hash = globalData$nests),
+                                 sex= "U",
+                                 age= "HY")
+          bird$addYearSeen(yearentry)
+          globalData$insertBird(bird)
+        }
+       
+        
         if (is.null(globalData$findNestling(nID))){
           message("nestling from year ", year, "created but not put into globaldata")
         }
