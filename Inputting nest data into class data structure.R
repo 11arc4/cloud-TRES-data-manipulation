@@ -167,7 +167,7 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           boxID = boxID,
           chicknumber = n$id,
           rownumber = i,
-          bandID = n$bandID
+          bandID = as.character(nestdata[i, n$bandID])
         )
         nID <- nestling$nestlingCode
         if(is.null(nestling)){
@@ -177,18 +177,6 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
         globalData$insertNestling(nestling)
         #Put nestling into the nestling list for that nest
         nest$addNestling(EnvPointer( nestling$nestlingCode, globalData$nestlings))
-        #Put that bird into the birds hash
-        if(!is.na(n$bandID)){
-          bird <- TreeSwallow(bandID = n$bandID,
-                                          hatchnest = EnvPointer(id = nestID, hash = globalData$nests))
-          yearentry <- YearsSeen(year=year,
-                                 hatchNest = EnvPointer(id = nestID, hash = globalData$nests),
-                                 sex= "U",
-                                 age= "HY")
-          bird$addYearSeen(yearentry)
-          globalData$insertBird(bird)
-        }
-       
         
         if (is.null(globalData$findNestling(nID))){
           message("nestling from year ", year, "created but not put into globaldata")
