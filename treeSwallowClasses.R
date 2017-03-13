@@ -131,7 +131,6 @@ GlobalBirdData$methods(
                            boxID,
                            chicknumber,
                            rownumber,
-                           dataSingleton=globalData,
                            bandID=NA_character_) {
     nestID <-
       .self$buildNestID(year = year, boxID = boxID)  #This is the unique
@@ -144,14 +143,14 @@ GlobalBirdData$methods(
 
 
       newBird = TreeSwallow(bandID = bandID,
-                            hatchnest = EnvPointer(id = nestID, hash = dataSingleton$nests))
+                            hatchnest = EnvPointer(id = nestID, hash = globalData$nests))
       year <- YearsSeen(year=year,
-                        hatchNest = EnvPointer(id = nestID, hash = dataSingleton$nests),
+                        hatchNest = EnvPointer(id = nestID, hash = globalData$nests),
                         sex= "U",
                         age= "HY")
       newBird$addYearSeen(year)
 
-      dataSingleton$insertBird(newBird)
+      globalData$insertBird(newBird)
 
       # 'band' is NA if we didn't build a treeSwallow...or is the treeSwallow ID if we did
       birdPtr = EnvPointer(id = bandID, hash = .self$birds)
