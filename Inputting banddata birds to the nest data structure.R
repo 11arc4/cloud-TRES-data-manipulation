@@ -79,93 +79,49 @@ for ( i in 1: length(band$BandID)){
       if(exists(fromNest, globalData$nests)){
         nest <- get(fromNest, globalData$nests)
       } else {
-        #then we probably have a nest that is a 1, 2, or maybe even 3 nest so
-        #will need to figure out which one it is based on the day we measured
-        #the nestlings and the fledge or fail date!
-        #WILL NEED TO DEAL WITH THIS IS THIS BREAKPOINT IS REACHED!
-        if(exists(paste(fromNest, "(1)"), globalData$nests)){
-          nest <- get(paste(fromNest, "(1)"), globalData$nests)
-          if(is.na(nest$fledgeSize)){
-            if(!is.na(nest$hatchSize)){
+        #then we probably have a nest that is a 1, 2, or maybe even 3 nest so 
+        #will need to figure out which one it is based on the day we measured 
+        #the nestlings and the fledge or fail date! We only deal with this case
+        #a couple of times in the entire dataset so while it seems to work fine
+        #for those couple of instances, if you want to use it for more intense
+        #things, make sure you check and see if it works well in your cases too!
+        
+        for (p in 1:4){
+          #if there are renests for this site
+          if(exists(paste(fromNest, " (", p, ")", sep=""), globalData$nests)){
+            nest <- get(paste(fromNest, " (", p, ")", sep=""), globalData$nests)
+            #check if we can see if any fledged--if we have less nestlings 
+            #checked into this nest than we had fledged then we found our nest! 
+            #I'm also kind of banking on the fact that if there are renests it's
+            #almost always because the nest failed early and the birds had time
+            #to build a new nest and try again
+            if(!is.na(nest$fledgeSize)){
+              if(nest$fledgeSize>0 & nest$nestlings$length < nest$fledgeSize){
+                break
+              } else {
+                next
+              }
+            } else {
+              #If we don't know anything about whether the nest failed or not we
+              #can check to see whether any nestlings hatched--if they hatched
+              #then that is probably where these banded nestlings came from
               if(!is.na(nest$hatchSize)){
-                if(nest$hatchSize != 0){
-                  if(exists(paste(fromNest, "(2)"), globalData$nests)){
-                    nest <- get(paste(fromNest, "(2)"), globalData$nests)
-                    if(is.na(nest$fledgeSize)){
-                      if(nest$nestlings$length>0){
-                        message("hmmmm this nestling doesn't seem to fit anywhere")
-                      } else {
-                        message("mannually check this nestling to see where it goes ", bird$bandID)
-                      }
-                    } else {
-                      if(nest$fledgeSize<1){
-                        if(exists(paste(fromNest, "(3)"), globalData$nests)){
-                          nest <- get(paste(fromNest, "(3)"), globalData$nests)
-                          if(!is.na(nest$fledgeSize)){
-                            if(nest$fledgeSize<1){
-                              message("all of these nests didn't have nestlings", fromNest)
-                            }
-                          } else {
-                            if( nest$nestlings$length>0){
-                              message("nest already has nestlings", fromNest)
-                            } else {
-                              message("all of these nests didn't have nestlings", fromNest)
-                            }
-                          }
-                          
-                        }
-                      }
-                    }
-                  }
+                if(nest$hatchSize>0){
+                  break
+                }else {
+                  next
                 }
               }
-                  
-                  
-                  
-  
-              nest <- get(paste(fromNest, "(1)"), globalData$nests)
-            } else {
-              message("mannually check this nestling to see where it goes ", bird$bandID)
             }
           } else {
-            
-            if(nest$fledgeSize<1){
-              if(exists(paste(fromNest, "(2)"), globalData$nests)){
-                nest <- get(paste(fromNest, "(2)"), globalData$nests)
-                if(is.na(nest$fledgeSize)){
-                  if(nest$nestlings$length>0){
-                    message("hmmmm this nestling doesn't seem to fit anywhere")
-                  } else {
-                    message("mannually check this nestling to see where it goes ", bird$bandID)
-                  }
-                } else {
-                  if(nest$fledgeSize<1){
-                    if(exists(paste(fromNest, "(3)"), globalData$nests)){
-                      nest <- get(paste(fromNest, "(3)"), globalData$nests)
-                      if(!is.na(nest$fledgeSize)){
-                        if(nest$fledgeSize<1){
-                          message("all of these nests didn't have nestlings", fromNest)
-                        }
-                      } else {
-                        if( nest$nestlings$length>0){
-                          message("nest already has nestlings", fromNest)
-                        } else {
-                          message("all of these nests didn't have nestlings", fromNest)
-                        }
-                      }
-                      
-                    }
-                  }
-                }
-              }
-            }
+            message ("No nests for ", fromNest, " that meet the criteria: created new nest")
+            nest <- Nest(year=band$Year[i], siteID= fromNest)
+            globalData$insertNest(nest$siteID, nest)
+            break
           }
-        } else {
-          message("This nest doesn't exist.... oh dear")
-          nest <- Nest(year=band$Year[i], siteID= fromNest)
-          globalData$insertNest(nest$siteID, nest)
         }
-      }
+                
+      }  
       nestlingcode <- paste(nest$siteID,  " nestling " , nest$nestlings$length +1, sep="")
       nestling <- Nestling( nestlingTRES = EnvPointer(bandID, globalData$birds), 
                             fromNest = EnvPointer(nest$siteID, globalData$nests), 
