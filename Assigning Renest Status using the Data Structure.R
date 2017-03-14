@@ -1,5 +1,5 @@
 #Let's clean up the nests as best as we can!
-
+done=0
 for (nestname in ls(globalData$nests, all.names = T)){
   nest <- get(nestname, globalData$nests)
   #First we will want to make sure that failure at one level is being carried
@@ -28,6 +28,10 @@ for (nestname in ls(globalData$nests, all.names = T)){
           next
         }
       }
+      
+      if(fyear$nest$length==0){
+        fyear$addNest(EnvPointer( nestname, globalData$nests))
+      }
       #If she only had one nest this year then that's the first one
       if(fyear$nest$length==1){
         nest$renestStatus <- "First"
@@ -40,7 +44,7 @@ for (nestname in ls(globalData$nests, all.names = T)){
             if(i==1){
               nest$renestStatus<- "First"
             } else {
-              nest$renestStatus <- "Female Renest"
+              nest$renestStatus <- "Female Renest/Male Unknown"
             }
             break
           }
@@ -60,6 +64,10 @@ for (nestname in ls(globalData$nests, all.names = T)){
           next
         }
       }
+      
+      if(myear$nest$length==0){
+        myear$addNest(EnvPointer( nestname, globalData$nests))
+      }
       #If he only has one nest then we know it's his first nest
       
       if(myear$nest$length==1){
@@ -73,7 +81,7 @@ for (nestname in ls(globalData$nests, all.names = T)){
             if(i==1){
               nest$renestStatus<- "First"
             } else {
-              nest$renestStatus <- "Male Renest"
+              nest$renestStatus <- "Male Renest/Female Unknown"
             }
             break
           }
@@ -111,6 +119,11 @@ for (nestname in ls(globalData$nests, all.names = T)){
       if(myear$nest$length==0){
         myear$addNest(EnvPointer( nestname, globalData$nests))
       }
+      if(fyear$nest$length==0){
+        fyear$addNest(EnvPointer( nestname, globalData$nests))
+      }
+      
+      
       i_m<-0
       for (mnest in myear$nest$as.list()){
         i_m=i_m+1
@@ -134,8 +147,12 @@ for (nestname in ls(globalData$nests, all.names = T)){
       if(i_f!=1 & i_m==1){
         nest$renestStatus=="Female Renest"
       }
+      if(i_f!=1 & i_m!=1){
+        nest$renestStatus=="All Renest"
+      }
     }
     
     
   }
+  done=done+1
 }
