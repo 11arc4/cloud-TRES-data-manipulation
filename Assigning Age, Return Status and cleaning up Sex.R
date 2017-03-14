@@ -24,6 +24,15 @@ for (bird in as.list(globalData$birds)){
   #not sure if I need to reinput them all (may just do this automatically because RC is mutable)
   t=0
   for (year in bird$yearsSeen$as.list()){
+    #Reorder all the nests so they they are in order based on date within the year
+    if(year$nest$length>1){
+      l2 <- year$nest$as.list()
+      l3 <- l2[order(sapply(l2, function(v) { 
+        n <- get(v$m_key, globalData$nests)
+        n$firstEggDate} ))]
+      year$nest$replaceList(l3)
+    }
+    
     t=t+1
   
     sexes[t] <- year$sex
