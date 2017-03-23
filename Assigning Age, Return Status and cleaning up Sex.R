@@ -89,6 +89,24 @@ for (bird in as.list(globalData$birds)){
             if(year$age=="TY"){
               year$age="3Y"
             }
+            if(year$age=="ATY"){
+              year$age=="A3Y"
+            }
+            ###If you are a adult male and it's the first year that we've seen
+            ###you then you need to be entered as a AHY bird because there's no
+            ###other way for us to id your age!
+            if(year$sex=="M" & year$age != "AHY"){
+              message("Bird ", bird$bandID, " identified as a male was aged as ", year$age, "in its first year seen--set to AHY")
+              year$age <- "AHY"
+            }
+            #If you're an adult female and it's the first year we caught you all
+            #you can be is ASY or SY because that's all we can tell! Will need
+            #to set it to AHY because now we don't know if it's SY or ASY
+            if(year$sex=="F" & year$age != "SY" &  year$age != "ASY" & year$age != "AHY"){
+              message("Bird ", bird$bandID, " identified as a female was aged as ", year$age, " in its first year seen--set to AHY")
+              year$age<- "AHY"
+            }
+          
             
             
           } else {
@@ -136,9 +154,7 @@ for (bird in as.list(globalData$birds)){
       }
     }
     #Setting this iteration to be the previous year's info for the next iteration
-    if(is.na(year$age)){
-     # message("Check year$age")
-    }
+    
     prev <- year
     
   }
