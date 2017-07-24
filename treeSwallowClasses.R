@@ -216,6 +216,7 @@ Nest <- setRefClass("Nest",
                       fledgeSize = "integer",
                       reasonforFailure = "character",
                       renestStatus = "character",
+                      experiment = "character",
 
                       eggMass= "useableList"
 
@@ -228,7 +229,7 @@ Nest$methods (
   initialize = function (year, siteID,  nestlings = useableList(8), firstEggDate=NA_integer_, lastEggDate=NA_integer_,
                          hatchDate=NA_integer_, fledgeDate=NA_integer_, clutchSize=NA_integer_,
                          hatchSize=NA_integer_, fledgeSize=NA_integer_, reasonforFailure=NA_character_,
-                         renestStatus=NA_character_ , eggMass = useableList(8)){
+                         renestStatus=NA_character_ , experiment=NA_character_, eggMass = useableList(8)){
     .self$year <<- year
     .self$siteID <<- siteID
     .self$nestlings <<-nestlings
@@ -241,6 +242,7 @@ Nest$methods (
     .self$fledgeSize <<-fledgeSize
     .self$reasonforFailure <<- reasonforFailure
     .self$renestStatus <<- renestStatus
+    .self$experiment <<- experiment
     .self$eggMass <<- eggMass
   },
   addMale = function (malePointer){
@@ -297,6 +299,9 @@ Nest$methods (
     if(!is.na(nestdata$renest.status[i])){
       nest$renestStatus <- as.character(nestdata$renest.status[i])
     }
+    if(!is.na(nestdata$Experimental.Group.[i])){
+      nest$experiment <- nestdata$Experimental.Group.[i]
+    }
   },
   addEggMass = function ( mass){
     if(!is.na(mass)){
@@ -317,7 +322,8 @@ YearsSeen <- setRefClass("YearsSeen",
                            returnStatus = "character",
                            hatchNest = "EnvPointer",
                            nest = "useableList",
-                           observations= "useableList"
+                           observations= "useableList", 
+                           bloodInFreezer="character"
                          )
 )
 
@@ -328,14 +334,14 @@ YearsSeen$methods (
                         returnstatus=NA_character_,
                         hatchNest=EnvPointer(NA_character_, globalData$nests),
                         nest= useableList(1), #need to put this in a list because the bird might have been involved in multiple nests in a year!
-                        observations = useableList(1)
+                        observations = useableList(1),
+                        bloodInFreezer="No"
   ){
     .self$year <<- year
     .self$age <<- age
     .self$sex <<- sex
     .self$returnStatus <<- returnStatus
     .self$hatchNest <<- hatchNest
-
   },
   addNest = function (nest){
     .self$nest$addElement(nest)
@@ -367,8 +373,6 @@ TreeSwallow <- setRefClass("TreeSwallow",
                              hatchnest = "EnvPointer", # to Nest
                              # a pointer to the nest record from the nest where I hatched
                              nestList = "useableList", #(nestData, nestData)
-
-                             #observations = "useableList" ,
                              yearsSeen= "useableList"
                              )
                            #all of the things I know about an individual bird based on year
@@ -592,7 +596,7 @@ BodyMeasurements <- setRefClass("BodyMeasurements",
                                 contains="Observation",
                                 fields = list (
                                   wingChord = "numeric",
-                                  ninthPrimary = "numeric",
+                                #ninthPrimary = "numeric",
                                   mass = "numeric",
                                   tarsus = "numeric"
                                 )
@@ -602,7 +606,8 @@ BodyMeasurements$methods(
                          mass = NA_real_, tarsus = NA_real_) {
     initBase(date,  "bodymeasurement")
     .self$wingChord <<- wingChord
-    .self$ninthPrimary <<- ninthPrimary
+    #.self$ninthPrimary <<- ninthPrimary
+    # lets fix it so nineth primary is just wing chord
     .self$mass <<- mass
     .self$tarsus <<- tarsus
   }

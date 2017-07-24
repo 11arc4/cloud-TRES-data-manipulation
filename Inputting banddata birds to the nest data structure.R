@@ -11,7 +11,6 @@ if ("Lab_Users" == Sys.getenv("USERNAME")) {
   banddir <- "~/Amelia TRES data 1975-2016/Improved and Cleaned Data"
 } 
 
-
 library(beepr)
 
 bandfilename <- paste( banddir, "1975-2016 Bands.csv", sep="/")
@@ -31,8 +30,8 @@ band$Tarsus <- as.numeric (band$Tarsus)
 band$Mass <- as.numeric( band$Mass)
 band$Mass[which(band$Mass==0)] <- NA
 
-band$Ninth.Primary <- as.numeric(band$Ninth.Primary)
-band$Ninth.Primary[which(band$Ninth.Primary==0)] <- NA
+band$Nineth.Primaries <- as.numeric(band$Nineth.Primaries)
+band$Nineth.Primaries[which(band$Nineth.Primaries==0)] <- NA
 
 #There are a couple of entries in the banddata where age and sex are both NA.
 #Those entries appear to be lost bands and therefore unusable so we need to
@@ -128,7 +127,7 @@ for ( i in 1: length(band$BandID)){
                             nestlingCode=nestlingcode)
       if(!is.na(nest$hatchDate)){
         nstgMeas <- NestlingMeasurements( age = yday(band$Date[i])-nest$hatchDate,
-                                          ninthPrimary = band$Ninth.Primary[i],
+                                          ninthPrimary = band$Nineth.Primaries[i],
                                           mass = band$Mass[i],
                                           tarsus = band$Tarsus[i])
         nestling$addObservation(nstgMeas) 
@@ -182,8 +181,7 @@ for ( i in 1: length(band$BandID)){
       yearsEqual =0
       date <- band$Date[i]
       Obs <- BodyMeasurements(date=date, 
-                              wingChord = band$Wing.Chord[i], 
-                              ninthPrimary = band$Ninth.Primary[i],
+                              wingChord = band$Nineth.Primaries[i],
                               mass = band$Mass [i], 
                               tarsus = band$Tarsus[i] )
       if (length(bird$yearsSeen$as.list())>0){
@@ -223,8 +221,7 @@ for ( i in 1: length(band$BandID)){
       date <- band$Date[i]
       
       Obs <- BodyMeasurements(date=date, 
-                              wingChord = band$Wing.Chord[i], 
-                              ninthPrimary = band$Ninth.Primary[i],
+                              wingChord = band$Nineth.Primary[i], 
                               mass = band$Mass [i], 
                               tarsus = band$Tarsus[i] )
       year <- YearsSeen(year=band$Year[i],

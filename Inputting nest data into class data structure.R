@@ -113,7 +113,9 @@ InputNestDatatoClassStructure <- function (nestdata, globalData) {
           # these are the column names of the measurement - "F.Wing..mm.", etc
           measBaseNames <- c("Wing..mm.","Nineth.Primary..mm.", "Mass..g.", "Tarsus..mm.")
           # these are the names of the body metric attributes - must be in the same order as base names, above
-          metrics <- c("wingChord", "ninthPrimary", "mass", "tarsus")
+          metrics <- c("wingChord", "wingChord", "mass", "tarsus")
+          # this will fix it do that nineth primary and wing chord both get
+          # entered propery as wing chord since it's the same thing
           keys <- sapply(measBaseNames, function(x) { paste(sex, x, sep=".") } )
           existKeys <- keys %in% nestDataColumns
           k2 <- keys[existKeys]
