@@ -819,7 +819,7 @@ masterfile <- masterfile[, -c(8,9)]
 
 #Now we can just write that matrix out as a csv file and never do that again....
 ouputdir<-"~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
-outputfilename<-paste(ouputdir, "1975-2016 Bands.csv", sep="/")
+outputfilename<-paste(ouputdir, "1975-2017 Bands.csv", sep="/")
 write.csv(x=masterfile, file=outputfilename, row.names = FALSE, na="")
 #YAY I did it and it looks good
 
