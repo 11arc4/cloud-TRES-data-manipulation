@@ -16,6 +16,7 @@ for( i in 1:length(banddata2002$Month)){
   paste(as.character(banddata2002$Month[i]), as.character(banddata2002$Day[i]) ,as.character(banddata2002$Year[i]), sep="/")
  }
 }
+banddata2002$date <- as.character(as.Date(banddata2002$date, format= "%m/%d/%Y"))
 for (i in 1:length(banddata2002$Year)){
   if(!is.na(banddata2002$Blood..ul.[i])){
     banddata2002$Blood[i]<- "YES"
@@ -436,10 +437,10 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2010_adults,
                               Tarsus="TARSUS..mm.",
                               Blood="blood.",
                               Plumage="cumltive.plumage",
-                              Head=NA,
-                              Back=NA,
+                              Head="plumage.score..H.",
+                              Back="plumage.score..M.",
                               Epaulette="plumage.score..E.",
-                              Tail=NA,
+                              Tail="plumage.score..R.",
                               Forehead=NA,
                               Time="release.time",
                               BroodPatch=NA,	
@@ -476,7 +477,9 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2010_nesting,
 
 #Add 2011
 #2011 adults
-banddata2011_adult<-read.csv(paste(inputdir, "2011adult.csv", sep="/"), as.is=TRUE, na.strings=c("", "NA"))
+banddata2011_adult<-read.csv(paste(inputdir, "2011adult.csv", sep="/"), as.is=TRUE, na.strings=c("", "NA", "N/A", " ", "-"))
+
+banddata2011_adult <- banddata2011_adult[1:95, ]
 banddata2011_adult$Year<-2011
 for (blood in banddata2011_adult$blood.){
   if(is.na(blood)){
@@ -489,6 +492,13 @@ for (blood in banddata2011_adult$blood.){
     }
   }
 }
+
+
+banddata2011_adult$Plumage.value <- ( 25 *banddata2011_adult$plumage.score..H. + 
+                                       20 *banddata2011_adult$plumage.score..E. + 
+                                       50 * banddata2011_adult$plumage.score..M. +
+                                       5* banddata2011_adult$plumage.score..R.)/100
+
 masterfile<-AddtoBandDataFile(inputfile = banddata2011_adult, 
                               band=masterfile, 
                               Species=NA,
@@ -504,12 +514,11 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2011_adult,
                               Mass="MASS..g.",	
                               Tarsus="TARSUS..mm.",
                               Blood="BLOOD",
-                              Plumage=NA,
+                              Plumage="Plumage.value",
                               Head="plumage.score..H.",
-                              Back=NA,
+                              Back="plumage.score..M.",
                               Epaulette="plumage.score..E.",
-                              Tail=NA,
-                              Forehead=NA,
+                              Tail="plumage.score..R.",
                               Time="release.time",
                               BroodPatch=NA,	
                               CloacalProtub=NA)
@@ -574,11 +583,11 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2012_adults,
                               Mass="MASS..g.",	
                               Tarsus="TARSUS..mm.",
                               Blood="blood.",
-                              Plumage=NA,
+                              Plumage="Plumage.value",
                               Head="plumage.score..H.",
-                              Back=NA,
+                              Back="plumage.score..M.",
                               Epaulette="plumage.score..E.",
-                              Tail=NA,
+                              Tail="plumage.score..R.",
                               Forehead=NA,
                               Time="release.time",
                               BroodPatch=NA,	
@@ -640,12 +649,11 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2013,
                               Mass="MASS..g.",	
                               Tarsus="TARSUS..mm.",
                               Blood="blood.",
-                              Plumage=NA,
+                              Plumage="Plumage.value",
                               Head="plumage.score..H.",
-                              Back=NA,
+                              Back="plumage.score..M.",
                               Epaulette="plumage.score..E.",
-                              Tail=NA,
-                              Forehead=NA,
+                              Tail="plumage.score..R.",
                               Time="release.time",
                               BroodPatch=NA,	
                               CloacalProtub=NA)
@@ -669,11 +677,11 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2014,
                               Mass="MASS..g.",	
                               Tarsus="TARSUS..mm.",
                               Blood="blood.",
-                              Plumage=NA,
+                              Plumage="Plumage.value",
                               Head="plumage.score..H.",
-                              Back=NA,
+                              Back="plumage.score..M.",
                               Epaulette="plumage.score..E.",
-                              Tail=NA,
+                              Tail="plumage.score..R.",
                               Forehead=NA,
                               Time="release.time",
                               BroodPatch=NA,	
@@ -698,9 +706,9 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2015,
                               Blood="blood.",
                               Plumage="Plumage.value",
                               Head="plumage.score..H.",
-                              Back=NA,
+                              Back="plumage.score..M.",
                               Epaulette="plumage.score..E.",
-                              Tail=NA,
+                              Tail="plumage.score..R.",
                               Forehead=NA,
                               Time="release.time",
                               BroodPatch=NA,	
@@ -728,17 +736,90 @@ masterfile<-AddtoBandDataFile(inputfile = banddata2016,
                               Blood="blood.",
                               Plumage="Plumage.value",
                               Head="plumage.score..H.",
-                              Back=NA,
+                              Back="plumage.score..M.",
                               Epaulette="plumage.score..E.",
-                              Tail=NA,
+                              Tail="plumage.score..R.",
                               Forehead=NA,
                               Time="time.of.capture",
                               BroodPatch=NA,	
                               CloacalProtub=NA)
 
+#Add in 2017 adults only because nestlings are all already in from the nest data
+
+banddata2017<-read.csv(paste(inputdir, "TRES 2017 adults bands.csv", sep="/"), as.is=TRUE, na.strings = c("", "NA"))
+banddata2017$Year<-2017
+for (i in 1:nrow(banddata2017)){
+  if(!is.na(banddata2017$RFID.shows.bird.belongs.at[i])){
+    banddata2017$FinalizedBoxID[i] <-banddata2017$RFID.shows.bird.belongs.at[i] 
+      
+  } else {
+    banddata2017$FinalizedBoxID[i] <- banddata2017$BOX.ID[i] 
+      
+  }
+}
+
+masterfile<-AddtoBandDataFile(inputfile = banddata2017, 
+                              band=masterfile, 
+                              Species=NA,
+                              Year="Year",
+                              Date= "DATE",
+                              BoxID="FinalizedBoxID",
+                              BandID="band.number",
+                              Bander=NA,
+                              Sex="SEX", 
+                              Age="Age..from.feathers.", 
+                              Ninth.Primary=NA,	
+                              Wing.Chord= "WING..mm.",	
+                              Mass="MASS..g.",	
+                              Tarsus="TARSUS..mm.",
+                              Blood="blood.",
+                              Plumage="Plumage.value",
+                              Head="plumage.score..H.",
+                              Back="plumage.score..M.",
+                              Epaulette="plumage.score..E.",
+                              Tail="plumage.score..R.",
+                              Forehead=NA,
+                              Time="time.of.capture",
+                              BroodPatch=NA,	
+                              CloacalProtub=NA
+)
+
 
 ###Phew that was a lot of adding files....
+#now lets just quickly put winchord and ninethprimary together since it's actually all one thing
+
+fixWings <- function(wingChord, ninethPrim){
+  if(!is.na(wingChord)| !is.na(ninethPrim)){
+    if(!is.na(wingChord) & !is.na(ninethPrim)){
+      #if both the wing chord and nineth primary slots are filled in, we need to
+      #check that they are equal and then we can report only one of them
+      assertthat::are_equal(wingChord, ninethPrim)
+      return(wingChord)
+    } else {
+      #if we have only wing chord, report the wing chord
+      if(!is.na(wingChord)){
+        return(wingChord)
+      } else {
+        #otherwise report the ninethprimary
+        return(ninethPrim)
+      }
+    }
+  } else {
+    return(NA)
+  }
+}
+masterfile<- cbind(masterfile, rep(NA, nrow(masterfile)))
+colnames(masterfile)[22] <- "Nineth.Primaries"
+for (i in 1:nrow(masterfile)){
+  masterfile[i, "Nineth.Primaries"]<-fixWings(wingChord= masterfile[i, "Wing.Chord"], ninethPrim = masterfile[i, "Ninth.Primary"])
+}
+
+#And now we can remove the wingchord and ninthprim columns
+masterfile <- masterfile[, -c(8,9)]
+
 #Now we can just write that matrix out as a csv file and never do that again....
 ouputdir<-"~/Masters Thesis Project/Tree Swallow Data/Amelia TRES data 1975-2016/Improved and Cleaned Data"
 outputfilename<-paste(ouputdir, "1975-2016 Bands.csv", sep="/")
 write.csv(x=masterfile, file=outputfilename, row.names = FALSE, na="")
+#YAY I did it and it looks good
+

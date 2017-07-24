@@ -118,6 +118,7 @@ AddtoBandDataFile<-function(inputfile,
       if(is.na(InputColnames[a])){
         birdrow[a]<-NA
       } else {
+       #message ("column is", InputColnames[a], "row=", i, sep=" ")
         birdrow[a]<-inputfile[i, InputColnames[a]]
       }
     }
