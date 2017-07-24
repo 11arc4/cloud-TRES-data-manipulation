@@ -69,7 +69,6 @@ for (bird in as.list(globalData$birds)){
             mass[l] <- obs$mass
             tarsus[l] <- obs$tarsus
             wingChord[l] <- obs$wingChord
-            ninethPrim[l] <- obs$ninthPrimary
             nestID[l]<- nID
             clutchsize[l] <- clsize
             laydate[l] <-ldate
