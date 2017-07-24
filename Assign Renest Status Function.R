@@ -32,7 +32,7 @@ AssignRenestStatus <- function (nestdata) {
           
           nestdata$renest.status[i] <- "Unknown"
         } else {
-          #Females match but the males have and NA
+          #Females match but the males have a NA
           if ( !is.na(nestdata$FemaleID[i - 1]) & !is.na(nestdata$Female[i])) {
             if(nestdata$FemaleID[i] == nestdata$FemaleID[i - 1]){
               nestdata$renest.status[i] <- "Female Renest"
@@ -54,6 +54,11 @@ AssignRenestStatus <- function (nestdata) {
           #If there are diagonal NAs then it's a first nest
           if( (!is.na(nestdata$MaleID[i]) | !is.na(nestdata$MaleID[i-1])) &
               ( !is.na(nestdata$FemaleID[i - 1]) | !is.na(nestdata$Female[i])) ){
+            nestdata$renest.status[i] <- "First"
+          }
+          #If there is only one bird known out of the three
+          if(((!is.na(nestdata$MaleID[i]) | !is.na(nestdata$MaleID[i-1])) & is.na(nestdata$FemaleID[i - 1]) & is.na(nestdata$FemaleID[i ])) |
+              ( is.na(nestdata$MaleID[i]) & is.na(nestdata$MaleID[i-1]) & (!is.na(nestdata$FemaleID[i - 1]) | !is.na(nestdata$FemaleID[i ]) ))){
             nestdata$renest.status[i] <- "First"
           }
         }
