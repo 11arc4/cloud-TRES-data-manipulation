@@ -13,16 +13,16 @@ if ("Lab_Users" == Sys.getenv("USERNAME")) {
 
 library(beepr)
 
-bandfilename <- paste( banddir, "1975-2016 Bands.csv", sep="/")
+bandfilename <- paste( banddir, "1975-2017 Bands.csv", sep="/")
 
-#Load in the updated band data from 1975-2016
+#Load in the updated band data from 1975-2017
 band <- read.csv(file=bandfilename, as.is=TRUE, na.strings=c("", "NA"))
 #Set all the columns to be the correct type of value
 band$Age <- as.character (band$Age)
 band$BandID <-as.character (band$BandID)
 
-band$Wing.Chord <- as.numeric(band$Wing.Chord)
-band$Wing.Chord[which(band$Wing.Chord==0)] <- NA
+band$Nineth.Primaries <- as.numeric(band$Nineth.Primaries)
+band$Nineth.Primaries[which(band$Nineth.Primaries==0)] <- NA
 
 band$Tarsus <- as.numeric (band$Tarsus)
 # band$Tarus[which(band$Tarsus==0)] <- NA  There are no places where tarsus is mistakenly put in as 0 so don't need this
@@ -36,16 +36,28 @@ band$Nineth.Primaries[which(band$Nineth.Primaries==0)] <- NA
 #There are a couple of entries in the banddata where age and sex are both NA.
 #Those entries appear to be lost bands and therefore unusable so we need to
 #remove them from the band data
-band<- band[which(!is.na(band$Age) & !is.na(band$Sex) & !is.na(band$Year) & !is.na(band$BandID)), ]
+band<- band[which(!is.na(band$Age) | !is.na(band$Sex)), ]
 
 #Some of the band IDs are actually color codes--want to remove those from the data
 band <- band[which(nchar(band$BandID)>5), ]
+band$Sex[which(band$Sex=="m" |band$Sex=="M ")]<- "M"
+band$Sex[which(band$Sex=="F ")]<- "F"
+band$Sex[which(band$Sex=="?" | band$Sex=="3Y" |band$Sex=="6"| band$Sex=="7"|band$Sex=="u"| band$Sex=="U ")]<- "U"
+band$Age[which((band$Sex=="F" | band$Sex=="M") & is.na(band$Age))]<- "AHY"
+band$Age[which((band$Sex=="U") & is.na(band$Age))]<- "HY"
+
 
 #Fix band date format 
 
 band$Date[which(grepl("/", band$Date))] <- as.character(as.Date(as.character(band$Date[which(grepl("/", band$Date))]), format= "%m/%d/%Y"))
 band$Date[which(nchar(band$Date)<10)] <- paste(substr(band$Date[which(nchar(band$Date)<10)], 1, 2), "0", substr(band$Date[which(nchar(band$Date)<10)], 3, 6), sep = "")
 band$Date[which(nchar(band$Date)<10)] <- as.character(as.Date(band$Date[which(nchar(band$Date)<10)], format="%d%m%y"))
+
+#Fix up years (a couple are NA). 
+band <- band[which(!is.na(band$Year) & !is.na(band$Date)),] #If we don't know which year or the date, then there's no good place to put the data. We don't know where it comes from.... OOPS
+band$Year[which(is.na(band$Year) & !is.na(band$Date))] <- as.integer(substring(band$Date[which(is.na(band$Year) & !is.na(band$Date))], 1, 4))
+
+
 #here we want to create TreeSwallows as needed, or add in new observations IF
 #the date on those observations doesn't match up with one that already exists
 #(this will happen when we already used that measurement to fill in measurements
@@ -187,8 +199,11 @@ for ( i in 1: length(band$BandID)){
       if (length(bird$yearsSeen$as.list())>0){
         for (year in bird$yearsSeen$as.list()){
           if(year$year==band$Year[i]){
+            if(is.na(year$age)){
+              year$age <- band$Age[i]
+            }
             yearsEqual= yearsEqual + 1 #my way of checking to see if we've matched a year....
-            if( !is.na(date) & !is.null(year$observations$as.list()[[1]])){
+            if( !is.na(date) & year$observations$length>0){
               for (obs in year$observations$as.list()){
                 if (!is.na(obs$date)) {
                   if (date == obs$date){
@@ -200,7 +215,12 @@ for ( i in 1: length(band$BandID)){
                 #if none of the dates match up then we have a new observation of this bird and should go and add it
                 year$addObservation (Obs) 
               } 
-            }
+            } else {
+              #If there aren't any observations from this year add them!
+              if(!is.na(date)){
+                year$addObservation(Obs)
+              }
+            } 
           }
         }
         if (yearsEqual==0){
@@ -221,7 +241,7 @@ for ( i in 1: length(band$BandID)){
       date <- band$Date[i]
       
       Obs <- BodyMeasurements(date=date, 
-                              wingChord = band$Nineth.Primary[i], 
+                              wingChord = band$Nineth.Primaries[i], 
                               mass = band$Mass [i], 
                               tarsus = band$Tarsus[i] )
       year <- YearsSeen(year=band$Year[i],
@@ -236,4 +256,3 @@ for ( i in 1: length(band$BandID)){
 }
 beep(1)
 
-AllglobalData <- globalData$copy
